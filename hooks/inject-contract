@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# shellcheck source=include.sh
+. "${HOME}/.config/codex/hooks/include.sh"
+
+CONTRACT_ROOT="${HOME}/.config/codex/contracts/"
+
+BYTE_COUNT=0
+_output() {
+    local CONTENT
+    CONTENT="$(cat -)"
+    BYTE_COUNT=$((BYTE_COUNT + $(echo -n "${CONTENT}" | wc -c)))
+    echo "${CONTENT}"
+}
+
+_output_contract() {
+    local CONTRACT_NAME=$1
+    if [[ "${CONTRACT_NAME}" != "/"* ]]; then
+        local CONTRACT_PATH="${CONTRACT_ROOT}/${CONTRACT_NAME}.md"
+    else
+        local CONTRACT_PATH="${CONTRACT_NAME}"
+    fi
+
+    if [ ! -f "${CONTRACT_PATH}" ]; then
+        _fatal "Contract file not found: ${CONTRACT_PATH}"
+    fi
+
+    _output < <(cat "${CONTRACT_PATH}" | sed 's/^#/##/')
+    _output < <(echo)
+
+    _info "Added contract: ${CONTRACT_NAME}"
+}
+
+_output < <(echo '# AGENTS.md')
+_output < <(echo)
+_output_contract "core"
+
+if [ -d "${ROOT}/.codex/contracts" ]; then
+    if [ -f "${ROOT}/.codex/contracts/common" ]; then
+        while IFS= read -r CONTRACT_NAME; do
+            _output_contract "${CONTRACT_NAME}"
+        done <"${ROOT}/.codex/contracts/common"
+    fi
+    find "${ROOT}/.codex/contracts" -type f -name "*.md" | while read -r CONTRACT_FILE; do
+        _output_contract "${CONTRACT_FILE}"
+    done
+fi
+
+_info "Total contract byte count: ${BYTE_COUNT}"

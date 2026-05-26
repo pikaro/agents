@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/codex/hooks/inject-contract",
+            "statusMessage": "Injecting contract"
+          }
+        ]
+      }
+    ]
+  }
+}
