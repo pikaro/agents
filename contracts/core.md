@@ -158,6 +158,8 @@ ______________________________________________________________________
 - Avoid redundant or obvious comments
 - Add docstrings for public APIs and complex logic
 - Follow existing style; otherwise use standard conventions
+- Do *not* remove pre-existing commented-out code or configuration that may be
+    needed for context, reference, or behavior changes
 
 ______________________________________________________________________
 
@@ -182,6 +184,12 @@ ______________________________________________________________________
 - rg, rga, fd, sd
 - ast-grep
 - jq, yq
+
+### Tool usage
+
+- Prefer readonly tools that do not escape the sandbox for simple queries
+- For complex queries or sandbox escapes, *always* use MCP tooling or
+    language-specific wrappers provided by the user.
 
 ______________________________________________________________________
 
