@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.config/codex/hooks/inject-contract",
+            "command": "~/.config/agents/hooks/inject-contract",
             "statusMessage": "Injecting contract"
           }
         ]

@@ -1,16 +1,29 @@
 #!/bin/bash
 
 # shellcheck source=include.sh
-. "${HOME}/.config/codex/hooks/include.sh"
+. "${HOME}/.config/agents/hooks/include.sh"
 
-CONTRACT_ROOT="${HOME}/.config/codex/contracts/"
+CONTRACT_ROOT="${HOME}/.config/agents/contracts/"
+
+if [ -n "${1:-}" ]; then
+    TARGET="${ROOT}/${1}"
+    mkdir -p "$(dirname "${TARGET}")"
+    if [ -e "${TARGET}" ] && [ ! -f "${TARGET}" ]; then
+        echo "FATAL: Not a file: ${TARGET}" >/dev/stderr
+        exit 2
+    elif [ -e "${TARGET}" ]; then
+        rm -f "${TARGET}"
+    fi
+else
+    TARGET="/dev/stdout"
+fi
 
 BYTE_COUNT=0
 _output() {
     local CONTENT
     CONTENT="$(cat -)"
     BYTE_COUNT=$((BYTE_COUNT + $(echo -n "${CONTENT}" | wc -c)))
-    echo "${CONTENT}"
+    echo "${CONTENT}" >>"${TARGET}"
 }
 
 _output_contract() {
@@ -35,13 +48,13 @@ _output < <(echo '# AGENTS.md')
 _output < <(echo)
 _output_contract "general"
 
-if [ -d "${ROOT}/.codex/contracts" ]; then
-    if [ -f "${ROOT}/.codex/contracts/common" ]; then
+if [ -d "${ROOT}/.agents/contracts" ]; then
+    if [ -f "${ROOT}/.agents/contracts/common" ]; then
         while IFS= read -r CONTRACT_NAME; do
             _output_contract "${CONTRACT_NAME}"
-        done <"${ROOT}/.codex/contracts/common"
+        done <"${ROOT}/.agents/contracts/common"
     fi
-    find "${ROOT}/.codex/contracts" -type f -name "*.md" | while read -r CONTRACT_FILE; do
+    find "${ROOT}/.agents/contracts" -type f -name "*.md" | while read -r CONTRACT_FILE; do
         _output_contract "${CONTRACT_FILE}"
     done
 fi
