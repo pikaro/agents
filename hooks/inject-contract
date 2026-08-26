@@ -33,7 +33,7 @@ _output_contract() {
 
 _output < <(echo '# AGENTS.md')
 _output < <(echo)
-_output_contract "core"
+_output_contract "general"
 
 if [ -d "${ROOT}/.codex/contracts" ]; then
     if [ -f "${ROOT}/.codex/contracts/common" ]; then
