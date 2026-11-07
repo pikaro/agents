@@ -1,12 +1,8 @@
 # Python contract
 
-Extends General. Each section is the concrete mechanism for a general principle.
-
-______________________________________________________________________
+Extends General and App with Python-specific requirements.
 
 ## Language version
-
-Concrete form of *General → Language version*.
 
 - Floor is Python 3.14. `pyproject.toml` declares `requires-python = ">=3.14"`.
 - No compatibility code below the floor: no `sys.version_info` branches, no
@@ -24,21 +20,17 @@ Concrete form of *General → Language version*.
         `StrEnum` / `IntEnum` over string and int constants
     - `match` where it is clearer than an `if` chain, not as decoration
 
-______________________________________________________________________
-
 ## Aesthetics
 
 **Overrides *General → Core principles*.** Readability sits directly below
-correctness and scope control, above consistency with existing patterns. Python
-is expected to be beautiful; a working but ugly implementation is not finished.
+correctness and scope control, above consistency with existing patterns. Improve
+readability where a concrete issue makes behavior harder to understand.
 
-The override does not license scope creep. Ugly code inside the task's code path
-gets fixed; ugly code outside it is reported, not refactored.
+Keep improvements within the active package. Once its acceptance checks pass,
+aesthetic preference alone does not justify another model or API redesign.
 
-- If the finished function is ugly, the model is wrong. Fix the model, not the
-    formatting.
-- If following a neighboring file's pattern would produce ugly code, say so and
-    propose the better shape instead of copying it.
+- Name the concrete issue: hidden state, misleading names, repeated branching or
+    a confusing interface. Use the formatter for mechanical style.
 - Expressive names. No abbreviations that are not domain terms.
 - Early return over nesting. Maximum nesting depth of three inside a function.
 - A comprehension where it reads as one thought; a loop where it does not. Never
@@ -49,11 +41,7 @@ gets fixed; ugly code outside it is reported, not refactored.
     condition, no single-use lambda, no metaclass without a stated reason, no
     monkeypatching outside tests.
 
-______________________________________________________________________
-
 ## Typing
-
-Concrete form of *General → Type discipline*.
 
 - Fully typed: every parameter, return value, attribute and module-level
     constant.
@@ -69,15 +57,10 @@ Concrete form of *General → Type discipline*.
     `Sequence` / `Mapping` / `Iterable` in parameter positions; concrete types in
     return positions.
 
-______________________________________________________________________
-
 ## API design
 
-Concrete form of *General → Public surface over internals*.
-
-- Prefer monadic and dyadic functions. Three required parameters is a smell; four
-    is a missing data model - model the inputs and take one argument. Keyword-only
-    options with defaults do not count toward this.
+- Group parameters in a model when they form a coherent domain concept or share
+    invariants. Argument count alone does not justify a model.
 - Anchor the calling convention: `/` for positional-only, `*` for keyword-only.
     Every boolean, every optional tuning value, and anything unidentifiable at the
     call site is keyword-only.
@@ -93,8 +76,6 @@ Concrete form of *General → Public surface over internals*.
 - Raise a domain exception derived from one project base exception. Never raise or
     catch bare `Exception`. Never swallow an exception without logging it.
 
-______________________________________________________________________
-
 ## Async
 
 - Async for HTTP APIs and for work that is inherently concurrent I/O: many
@@ -108,19 +89,16 @@ ______________________________________________________________________
     `asyncio.to_thread`.
 - Never call blocking code from an async function without `to_thread`.
 
-______________________________________________________________________
-
 ## Complexity
 
-- McCabe limit of 8, enforced by `ruff` (`C901`, `lint.mccabe.max-complexity = 8`).
-- The limit is a detector, not a target. A function at 8 usually wants splitting
-    or a data model, not a refactor that games the metric.
-
-______________________________________________________________________
+- Use `ruff`'s `C901` with `lint.mccabe.max-complexity = 8` as a review signal.
+- Simplify the decisions or extract cohesive behavior where that improves
+    comprehension across the function and its callers. Do not introduce helpers
+    or models merely to lower the score. Where the cohesive routine is clearer,
+    use a narrow suppression with the reason per *General → Toolchain
+    conformance*.
 
 ## Performance
-
-Concrete form of *General → Performance*.
 
 - Hot paths are the exception in Python. Assume non-critical and prefer clarity
     until a measurement says otherwise.
@@ -143,26 +121,24 @@ Concrete form of *General → Performance*.
     cannot reach.
 - Where the plausible count is unclear, ask rather than assuming the large case.
 
-______________________________________________________________________
-
 ## Composition and dependency injection
 
-- Dependencies are constructor parameters, typed as `Protocol`s, stored as
-    attributes, used by methods. This is the DI mechanism.
+- Pass collaborators explicitly where substitution, state or ownership requires
+    it. Use constructor parameters for collaborators an object retains.
+    `Protocol`s describe meaningful substitution or I/O boundaries; ordinary
+    public function calls need no injected object or protocol.
 - No service locator, no global registry, no import-time singleton, no
-    framework-magic injection outside FastAPI's `Depends`.
-- Free functions for pure transformations; classes where there is state or an
-    injected collaborator. Not classes as namespaces for functions.
+    framework-magic injection unless an applicable framework contract specifies it.
+- Free functions for stateless operations, including those taking explicit
+    collaborators. Classes own state or collaborator lifetimes; never use them
+    as namespaces for functions.
 - Inheritance is for a genuine substitutable subtype. Anything else is a
     collaborator - inject it. Never inherit to share helper methods; never inherit
     from a concrete class you also instantiate.
-- Name the pattern in a comment per *General → Name the patterns*.
-
-______________________________________________________________________
 
 ## Data and settings modeling
 
-- Data to model → Pydantic v2 `BaseModel`, defaulting to
+- Data models, including internal ones, use Pydantic v2 `BaseModel`, defaulting to
     `model_config = ConfigDict(frozen=True, extra="forbid")`. Relax deliberately,
     with a reason.
 - Validate at the boundary, then trust the model inward. Do not re-validate
@@ -176,29 +152,7 @@ ______________________________________________________________________
 - `Field` for constraints and descriptions. Validators for cross-field
     invariants, not for defaults.
 
-______________________________________________________________________
-
-## Web APIs and Lambda
-
-- HTTP APIs → FastAPI, async. Route handlers parse, delegate, return. Business
-    logic lives in an injected service.
-- Declare `response_model` explicitly. `HTTPException` is raised in the boundary
-    layer only; a service raises a domain error and the boundary maps it.
-- AWS Lambda → `aws-lambda-powertools`:
-    - `Logger` with `@logger.inject_lambda_context`
-    - `Tracer` with `@tracer.capture_lambda_handler`, and `@tracer.capture_method`
-        on calls worth seeing in a trace
-    - `Metrics` for anything an operator alarms on
-    - powertools parser and event source models for event parsing, not dictionary
-        indexing
-    - powertools idempotency where the handler is not naturally idempotent
-- Tracing instrumentation in Lambda code is required, not optional.
-
-______________________________________________________________________
-
 ## Logging
-
-Concrete form of *General → Logging and metrics*.
 
 - JSON logging. Structured fields in `extra`; the message is a short, stable
     event name.
@@ -208,21 +162,20 @@ Concrete form of *General → Logging and metrics*.
     ```
 
 - Never an f-string, `%`, or `.format()` in a log call. Enforced by `ruff` (`G`).
-- One module-level `logger = logging.getLogger(__name__)`, or the powertools
-    `Logger` in Lambda code. No `print` outside a CLI's own output.
+- One module-level `logger = logging.getLogger(__name__)`; an applicable domain
+    contract may specify a different logger. No `print` outside a CLI's own output.
 - Log at the boundary where the outcome is known. Do not log and re-raise at
     every level.
-
-______________________________________________________________________
 
 ## Environment and dependencies
 
 ### Environment
 
 - Work inside the project virtualenv. **Never install globally.**
-- In a directory whose project uses a virtualenv that is not currently active,
-    assume user error: stop and ask for activation. Do not create a second
-    environment, and do not proceed against the interpreter's global packages.
+- Use the existing project virtualenv through `uv run` or its explicit executable;
+    shell activation is not required. Prefer `uv run --no-sync` when verifying an
+    already provisioned environment. Do not create a second environment or fall
+    back to global packages. Report an actually missing environment/dependency.
 - With no virtualenv, use only what the active interpreter already provides.
     Adding a dependency in that state is a blocking assumption.
 - `uv` manages the environment and the lockfile: `uv sync` to install, `uv run` to
@@ -240,8 +193,7 @@ Preference order, applied as a guideline rather than a checklist:
 1. **Modern and narrowly scoped** - debt-free, high-performance, fully typed, a
     clean expressive API, low mental load.
 2. **Classic and established** - industry standard, boring engineering, some tech
-    debt acceptable. Pydantic and FastAPI sit here by mandate despite their
-    breadth.
+    debt acceptable.
 3. **Little-known but well-engineered** - clean, current, well-maintained.
 
 - Below roughly 100 stars, ask before adding.
@@ -251,11 +203,7 @@ Preference order, applied as a guideline rather than a checklist:
     the project's declared dependencies. A dev-only or test-only tool that follows
     the preference order above does not need a separate ask.
 
-______________________________________________________________________
-
 ## Imports
-
-Concrete form of *General → Dependency and surface hygiene*.
 
 - Import exactly what the module uses. A name imported for re-export goes in
     `__all__`.
@@ -266,38 +214,29 @@ Concrete form of *General → Dependency and surface hygiene*.
     one.
 - Remove a dependency when its last use goes away.
 
-______________________________________________________________________
-
 ## Project layout
 
-Concrete form of *General → Component structure*.
-
-- `src/` layout, one distribution package, subpackages as components.
-- Per component: `component/__init__.py` is the facade, re-exporting the public
-    core API via `__all__` and nothing optional. Implementation in
-    `component/_internal/`. Interface types - `Protocol`s, Pydantic models, config,
-    wire messages - in `component/interfaces.py`, importable without pulling in the
-    core.
-- Optional, pluggable parts live in their own subpackage and are not imported by
-    the component's `__init__.py`.
+- `src/` layout, one distribution package. Start a component as a cohesive module;
+    use a subpackage when its responsibilities need separate modules.
+- Where a package needs a facade, `__init__.py` re-exports its public API via
+    `__all__`. Use `_internal/` when private implementation needs separate
+    modules. Put boundary types in `interfaces.py` when consumers need them
+    without importing the implementation. These are conditional boundaries,
+    not a required scaffold for every component.
+- Optional, pluggable parts live in separate modules or subpackages and are not
+    imported by the component's `__init__.py`.
 - The underscore prefix is the private-directory mechanism. Never import another
     component's `_internal`.
 - No circular imports. No import-time side effects: importing a module does not
     read configuration, open a connection, or start a thread.
 
-______________________________________________________________________
-
 ## Docstrings
-
-Concrete form of *General → Comments and documentation*.
 
 - Docstrings on every public module, class and function. `_private` helpers get
     one where the intent is not obvious from the signature.
 - Document what the types do not express: units, ranges, side effects, raised
     exceptions, event-loop or thread expectations, and a surprising cost class.
 - Do not restate the signature in prose.
-
-______________________________________________________________________
 
 ## Tooling
 
@@ -307,8 +246,20 @@ ______________________________________________________________________
 - `pyright` strict for type checking.
 - `pytest` with `pytest-cov`. Test behavior through the public surface; do not
     test `_internal` directly.
-- `moto` for AWS service mocking. Never a hand-written AWS stub, and never a test
-    against a real account.
 - `bandit` in CI alongside ruff's `S` rules.
-- Add a test with every behavior change. A bug fix gets a regression test that
-    fails before the fix.
+- Add or update tests where existing coverage does not establish the changed
+    behavior. A behavior bug fix gets a regression test that fails before the
+    fix. Prose-only changes use review and relevant existing tests; do not write
+    tests of agent-rule wording.
+
+## Optional domains
+
+Read the matching file under ~/.config/agents/contracts once before relevant
+work; do not load all domains for every Python task.
+
+- HTTP API handlers/services: fastapi.md.
+- AWS SDK integrations and their tests: aws-python.md.
+- Lambda handlers/runtime behavior: aws-lambda.md (also requires aws-python.md).
+
+Project settings and exact installed versions remain authoritative. Follow the
+General formatting/verification cadence; do not duplicate it in each component.

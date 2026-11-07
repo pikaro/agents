@@ -16,7 +16,7 @@ ______________________________________________________________________
     network path, and everything they call are hot paths.
 - Non-critical on device means startup, configuration, one-shot command handling,
     and diagnostics. Everything else is hot until shown otherwise.
-- This inverts *General → Performance*: here, added overhead needs justification,
+- This inverts *App → Performance*: here, added overhead needs justification,
     not optimization.
 
 ______________________________________________________________________

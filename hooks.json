@@ -6,7 +6,8 @@
           {
             "type": "command",
             "command": "~/.config/agents/hooks/inject-contract",
-            "statusMessage": "Injecting contract"
+            "statusMessage": "Injecting contract",
+            "additionalContextLimit": 0
           }
         ]
       }

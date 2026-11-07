@@ -1,6 +1,6 @@
 # C++ contract
 
-Extends General. Applies to all C++, on desktop and on device. Embedded is
+Extends General and App. Applies to all C++, on desktop and on device. Embedded is
 stricter where it overlaps and wins there.
 
 Each section is the concrete mechanism for a general principle.
@@ -170,7 +170,7 @@ ______________________________________________________________________
 
 ## Allocation and hot paths
 
-Concrete form of *General → Performance*.
+Concrete form of *App → Performance*.
 
 In hot or latency-sensitive paths, prefer:
 
@@ -235,7 +235,7 @@ ______________________________________________________________________
 
 ## Code structure
 
-Concrete form of *General → Component structure*.
+Concrete form of *App → Component structure*.
 
 - Title-case directory names are public code; lower-case directories are private.
 - Private means not included directly by a consumer. A consumer includes
@@ -264,7 +264,7 @@ ______________________________________________________________________
 
 ## Logging
 
-Concrete form of *General → Logging and metrics*.
+Concrete form of *App → Logging and metrics*.
 
 - Log a stable event name plus fields through the project's logging component.
     Do not concatenate or format values into the message text.
@@ -281,6 +281,6 @@ ______________________________________________________________________
     ownership of reference parameters, thread context, blocking behavior. ISR
     context has its own requirement in *Embedded → Interrupt context*.
 - Document the invariant a class maintains, at the class declaration.
-- C++ patterns to name per *General → Name the patterns*, in addition to the
+- C++ patterns to name per *App → Name the patterns*, in addition to the
     general list: type erasure, CRTP, policy injection, scope guard / RAII
     wrapper, tag dispatch, pimpl.
