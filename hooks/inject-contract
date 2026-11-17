@@ -5,7 +5,9 @@ Global contracts live in ~/.config/agents/contracts as NN-name.md or
 NNx-name.md (x a lowercase letter) and are referenced by bare name from
 .agents/contracts/common files. They are gathered from every directory between
 / and the project root, deduplicated, sorted by filename (i.e. by the prefix)
-and emitted first. Project contracts
+and emitted first. A common line `!name` drops a contract selected by an
+enclosing directory or an earlier line; the always-included contracts cannot
+be dropped. Project contracts
 (.agents/contracts/**/*.md) follow, outermost directory first.
 
 Usage: <hook payload on stdin> | agents_md.py [TARGET]
@@ -132,6 +134,16 @@ def main() -> None:
 
     for name in ALWAYS_INCLUDED:
         add_global(name, "ALWAYS_INCLUDED")
+    always_included = set(global_paths)
+
+    def drop_global(name: str, source: str) -> None:
+        if not name:
+            fatal(f"Exclusion without a contract name in {source}")
+        key = resolve_global(name, index, source).resolve()
+        if key in always_included:
+            fatal(f"Contract {name!r} is always included and cannot be excluded (in {source})")
+        if global_paths.pop(key, None) is None:
+            info(f"Exclusion of {name!r} in {source} matched no selected contract")
 
     for node in [*reversed(root.parents), root]:  # outermost first
         contracts = node / ".agents" / "contracts"
@@ -140,8 +152,11 @@ def main() -> None:
         info(f"Processing config in {node}")
         common = contracts / "common"
         if common.is_file():
-            for name in read_common(common):
-                add_global(name, str(common))
+            for entry in read_common(common):
+                if entry.startswith("!"):
+                    drop_global(entry[1:].strip(), str(common))
+                else:
+                    add_global(entry, str(common))
         project_paths += sorted((p for p in contracts.rglob("*.md") if p.is_file()), key=str)
 
     # Globals sort by filename (NN prefix); project contracts keep tree order.
