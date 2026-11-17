@@ -1,6 +1,6 @@
 # AWS Python contract
 
-Domain extension to Python. Load for AWS client integrations and their tests.
+Extends Python. Applies to AWS client integrations and their tests.
 
 - Use maintained SDK clients for service data and typed boundary models. Do not
     invoke the AWS CLI to parse its output when an SDK operation is available.

@@ -53,8 +53,10 @@ aesthetic preference alone does not justify another model or API redesign.
     a comment stating why. Limits are in *General → Toolchain conformance*.
 - Use generics where they remove a cast, and `@overload` where the return type
     depends on the argument types. A caller must never need `cast` to use your API.
-- `Protocol` over an abstract base class for a dependency's interface.
-    `Sequence` / `Mapping` / `Iterable` in parameter positions; concrete types in
+- Where a dependency needs an interface, write a `Protocol`, not an abstract
+    base class. *Composition and dependency injection* decides whether it needs
+    one.
+- `Sequence` / `Mapping` / `Iterable` in parameter positions; concrete types in
     return positions.
 
 ## API design
@@ -71,8 +73,8 @@ aesthetic preference alone does not justify another model or API redesign.
 
 - Never a mutable default, and never a mutable module-level default callers can
     reach.
-- The public surface of a module is what `__all__` lists. Everything else is
-    `_private`.
+- A leading underscore marks a private name. Everything else in a module is its
+    public surface. Define `__all__` only in a module that re-exports names.
 - Raise a domain exception derived from one project base exception. Never raise or
     catch bare `Exception`. Never swallow an exception without logging it.
 
@@ -126,7 +128,9 @@ aesthetic preference alone does not justify another model or API redesign.
 - Pass collaborators explicitly where substitution, state or ownership requires
     it. Use constructor parameters for collaborators an object retains.
     `Protocol`s describe meaningful substitution or I/O boundaries; ordinary
-    public function calls need no injected object or protocol.
+    public function calls need no injected object or protocol. A protocol needs
+    two production implementations, or a boundary the project contract names.
+    A test fake is not an implementation.
 - No service locator, no global registry, no import-time singleton, no
     framework-magic injection unless an applicable framework contract specifies it.
 - Free functions for stateless operations, including those taking explicit
@@ -138,6 +142,8 @@ aesthetic preference alone does not justify another model or API redesign.
 
 ## Data and settings modeling
 
+- A model represents a domain fact or a payload that crosses a boundary. Do not
+    add a request, plan or result model for each layer a value passes through.
 - Data models, including internal ones, use Pydantic v2 `BaseModel`, defaulting to
     `model_config = ConfigDict(frozen=True, extra="forbid")`. Relax deliberately,
     with a reason.
@@ -154,7 +160,7 @@ aesthetic preference alone does not justify another model or API redesign.
 
 ## Logging
 
-- JSON logging. Structured fields in `extra`; the message is a short, stable
+- Operational logs are JSON. Structured fields in `extra`; the message is a short, stable
     event name.
 
     ```python
@@ -164,6 +170,8 @@ aesthetic preference alone does not justify another model or API redesign.
 - Never an f-string, `%`, or `.format()` in a log call. Enforced by `ruff` (`G`).
 - One module-level `logger = logging.getLogger(__name__)`; an applicable domain
     contract may specify a different logger. No `print` outside a CLI's own output.
+- A CLI's messages to its user are output, not logs. They go through the CLI's
+    own output code and are not JSON.
 - Log at the boundary where the outcome is known. Do not log and re-raise at
     every level.
 
@@ -181,6 +189,7 @@ aesthetic preference alone does not justify another model or API redesign.
 - `uv` manages the environment and the lockfile: `uv sync` to install, `uv run` to
     execute. `pyproject.toml` is the single source of project and tool
     configuration; no `setup.py`, no `requirements.txt`.
+- Project settings and exact installed versions remain authoritative.
 
 ### Adding libraries
 
@@ -212,54 +221,43 @@ Preference order, applied as a guideline rather than a checklist:
     optional dependency, with a comment saying which.
 - Every third-party name used is a declared dependency. Never rely on a transitive
     one.
-- Remove a dependency when its last use goes away.
 
 ## Project layout
 
-- `src/` layout, one distribution package. Start a component as a cohesive module;
-    use a subpackage when its responsibilities need separate modules.
-- Where a package needs a facade, `__init__.py` re-exports its public API via
-    `__all__`. Use `_internal/` when private implementation needs separate
-    modules. Put boundary types in `interfaces.py` when consumers need them
-    without importing the implementation. These are conditional boundaries,
-    not a required scaffold for every component.
+- `src/` layout, one distribution package. Start a component as one module.
+    Split it into a package of modules when it has several responsibilities.
+    Callers import a name from the module that defines it.
+- Do not add a re-exporting `__init__.py`, a private subpackage or a separate
+    module of interface types by default. Add one only where it breaks an
+    import cycle, keeps an optional heavy dependency out of the import path, or
+    the package is published to consumers outside the repository. State the
+    reason in the summary.
 - Optional, pluggable parts live in separate modules or subpackages and are not
     imported by the component's `__init__.py`.
-- The underscore prefix is the private-directory mechanism. Never import another
-    component's `_internal`.
+- A leading underscore marks a module or package as private to its component.
+    Never import another component's private module.
 - No circular imports. No import-time side effects: importing a module does not
     read configuration, open a connection, or start a thread.
 
 ## Docstrings
 
-- Docstrings on every public module, class and function. `_private` helpers get
-    one where the intent is not obvious from the signature.
+- Write a docstring where the name and signature leave something out. One line
+    is the normal length. A function whose name and types say everything needs
+    none.
 - Document what the types do not express: units, ranges, side effects, raised
     exceptions, event-loop or thread expectations, and a surprising cost class.
-- Do not restate the signature in prose.
+- Do not restate the name or signature, justify the design or tell its history.
 
 ## Tooling
 
 - `ruff` for lint and format, with broad rule selection including `S`
     (flake8-bandit), `G` (logging format), `C901`, `ANN`, `RUF`. Fix findings
-    rather than narrowing the selection.
-- `pyright` strict for type checking.
+    rather than narrowing the selection. The selection excludes the rules that
+    require a docstring on every module, class or function (`D100` to `D107`).
 - `pytest` with `pytest-cov`. Test behavior through the public surface; do not
-    test `_internal` directly.
+    test private modules directly.
 - `bandit` in CI alongside ruff's `S` rules.
 - Add or update tests where existing coverage does not establish the changed
     behavior. A behavior bug fix gets a regression test that fails before the
     fix. Prose-only changes use review and relevant existing tests; do not write
     tests of agent-rule wording.
-
-## Optional domains
-
-Read the matching file under ~/.config/agents/contracts once before relevant
-work; do not load all domains for every Python task.
-
-- HTTP API handlers/services: fastapi.md.
-- AWS SDK integrations and their tests: aws-python.md.
-- Lambda handlers/runtime behavior: aws-lambda.md (also requires aws-python.md).
-
-Project settings and exact installed versions remain authoritative. Follow the
-General formatting/verification cadence; do not duplicate it in each component.

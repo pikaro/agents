@@ -77,8 +77,8 @@ representation and delegates to a non-template implementation. Target one to
 three lines of template body.
 
 ```cpp
-// Type erasure: the template overload converts any contiguous byte-like range
-// to a span and delegates. All logic is in the non-template overload.
+// type erasure: any contiguous byte-like range converts to a span
+// all logic lives in the non-template overload
 class Writer {
 public:
     template <ByteRange R>
@@ -130,9 +130,10 @@ The constraint rule depends on how the parameter is supplied:
     `static_assert` inside a member function body, where `Derived` is complete.
 
 ```cpp
-// CRTP mixin: adds frame dispatch. Derived must provide `void onFrame(Frame)`.
-// Derived is deliberately unconstrained - it is incomplete at this point; the
-// requirement is asserted at first use, where it is complete.
+// CRTP mixin adding frame dispatch
+// Derived must provide `void onFrame(Frame)`
+// Derived is unconstrained because it is incomplete here
+// the requirement is asserted at first use, where it is complete
 template <typename Derived>
 class HasFrameSink {
     void dispatch(Frame f) {
@@ -161,8 +162,9 @@ Concrete form of *General → Type discipline*.
 - Do not weaken a signature to make a call site compile: no `void*`, no
     `reinterpret_cast` between project types, no dropping `const`, no non-`const`
     reference parameter used only to avoid a copy.
-- Four or more parameters means a missing type. Group them into a struct -
-    typically `Component/Interfaces/Config.hpp` - and pass by `const&`.
+- Parameters that form one concept or share invariants are a missing type.
+    Group them into a struct - typically `Component/Interfaces/Config.hpp` -
+    and pass by `const&`. Argument count alone does not justify a struct.
 - Two adjacent parameters of the same type are a call-site hazard. Use distinct
     strong types.
 
@@ -281,6 +283,5 @@ ______________________________________________________________________
     ownership of reference parameters, thread context, blocking behavior. ISR
     context has its own requirement in *Embedded → Interrupt context*.
 - Document the invariant a class maintains, at the class declaration.
-- C++ patterns to name per *App → Name the patterns*, in addition to the
-    general list: type erasure, CRTP, policy injection, scope guard / RAII
-    wrapper, tag dispatch, pimpl.
+- C++ patterns worth naming under *App → Name the patterns*: type erasure,
+    CRTP, policy injection, scope guard / RAII wrapper, tag dispatch, pimpl.

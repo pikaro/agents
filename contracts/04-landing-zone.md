@@ -1,6 +1,6 @@
 # Landing zone contract
 
-Domain extension to OpenTofu. Load for landing zone module repositories.
+Extends OpenTofu. Applies to landing zone module repositories.
 
 - Environments are workspaces with a matching `values.<env>.tfvars`, selected by
     tooling. Never select a workspace or pass a var file by hand.

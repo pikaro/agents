@@ -1,7 +1,10 @@
-# AWS Terraform contract
+# AWS OpenTofu contract
 
-- The general Best Practices of the AWS Security Reference Architecture, Well
-    Architected and similar principles must be followed.
+Extends OpenTofu. Applies to AWS infrastructure.
+
+- Follow the AWS Security Reference Architecture and the Well-Architected
+    Framework. Where a change deviates from one, say so in the summary and give
+    the reason.
 - KMS CMK must be used as the default encryption type where suitable.
 - `aws_iam_role_policy` and similar inline policy types are forbidden. Policies
     must be created as separate resources and attached.

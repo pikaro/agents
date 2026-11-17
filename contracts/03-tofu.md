@@ -279,5 +279,3 @@ it adds value.
 - *General → Conformance cleanup* also covers descriptions that restate type
     properties or do not mirror the type's fields, and input declarations the
     change touches that sit outside `variables*.tf`.
-- A suppression names the rule and the technical reason. Never widen an
-    exclusion to make a change pass.

@@ -12,8 +12,10 @@ phase-dependent rules. Report an unresolved consequential conflict once. Do not
 re-report a conflict the project already explicitly resolves. The writing
 contract is not a layer; it applies alongside all of them.
 
-Load only applicable contracts. A link is a reference, not an instruction to
-read every sibling file. Do not copy general principles into each lower layer.
+Where no phase contract is present, a schema, wire or persisted-format change is
+ask-first, and code the change makes redundant is removed.
+
+Do not copy general principles into each lower layer.
 
 Only the AGENTS.override.md or CLAUDE.local.md in the current directory is
 authoritative. DO NOT read these files from other directories you operate in -
@@ -27,8 +29,9 @@ outcome, rationale, verification and material remaining risks.
 
 ## Core principles
 
-Priority: correctness; scope control; then performance on measured hot paths, or
-readability and consistency elsewhere. Prefer existing patterns unless they
+Decide in this order. First, correctness. Second, staying within the authorized
+scope. Third, performance where a path is measured as hot, and readability and
+consistency with the existing code everywhere else. Prefer existing patterns unless they
 cause a concrete defect. Do not redesign correct code for aesthetic preference
 after the task's acceptance criteria are satisfied.
 
@@ -84,11 +87,10 @@ authorization and accepted decisions persist across compaction and sessions.
 
 ### Always
 
-- Read the project overview before coding; retain it until relevant facts
-    change.
 - Keep diffs scoped; preserve unrelated edits.
 - Report correctness, data-loss, security and major performance issues.
-- Update documentation made inaccurate by the current change.
+- Update documentation made inaccurate by the current change, even outside its
+    code path.
 
 ### Ask first
 
@@ -105,8 +107,8 @@ causes.
 
 ## Task scope
 
-One named outcome with explicit acceptance criteria and affected dependencies.
-Scope is the active work package, not everything touched during the
+A task is one named outcome, with its acceptance criteria and the dependencies
+it affects. Scope is the active work package, not everything touched during the
 conversation.
 
 ## Refactoring
@@ -168,45 +170,65 @@ the move is larger than the task, report it rather than performing it.
 
 ## Coding conventions
 
-Use clear names, focused functions/types, composition, deterministic behavior
-and explicit data flow. Keep input models coherent; language rules give limits.
+Names say what a thing is or does, in the project's vocabulary. A function or
+type has one responsibility. Build behavior by composing parts rather than by
+inheriting it. Data reaches a function through its parameters, not through
+shared or global state. A result does not depend on incidental ordering, timing
+or the environment unless the requirement says so.
+
+Group inputs into a model only where they form one concept or share invariants.
+Argument count alone does not justify one.
 
 ### Language version
 
-Use the project floor and its features. No compatibility code below it.
+The project declares the lowest language version it supports. Write for that
+version and use its features. Do not write fallbacks, feature checks or
+backports for older versions.
 
 ### Type discipline
 
-Type boundaries fully. Fix the model instead of weakening a type to silence
-tooling. Language rules provide concrete mechanisms.
+Declare complete types wherever code crosses a boundary: public functions,
+module interfaces, and data that enters or leaves the program. The language
+contract may require more. When a type checker rejects code, correct the code or
+the type model. Do not widen a type, add a cast or suppress the finding to make
+it pass.
 
 ### Dependency and surface hygiene
 
-Declare exactly the dependencies used. Make public/private boundaries explicit.
-Remove dependencies when their last use goes away.
+Declare every dependency the code uses directly, and none it does not use. Do
+not rely on one that arrives only through another dependency. Remove a
+dependency in the change that removes its last use. Mark what is public and what
+is private with the language's own mechanism.
 
 ### Configuration visibility
 
-Represent owned configuration in tooling-visible declarations/models, not
-scattered lookups. Genuine build/platform/deployment differentiation is exempt
-where the language/domain contract specifies the mechanism.
+Configuration the project owns is declared in one typed place that the editor
+and the type checker can resolve, such as a settings model or constants. Code
+reads it from there, not through lookups of environment variables or flags
+spread across the code. Differences between builds, platforms or deployments are
+exempt where the language or domain contract names the mechanism for them.
 
 ### Toolchain conformance
 
-Meet configured diagnostics for the changed scope. Never relax checks to make a
-change pass. Narrow inline suppressions name the rule and technical reason.
-Record pre-existing findings separately; they do not authorize unrelated fixes.
+Code you add or change produces no findings from the linters, type checkers and
+formatters the project configures. Never disable a rule, widen an exclusion or
+lower a threshold to make a change pass. Where a finding is wrong for a specific
+line, suppress it on that line only, and name the rule and the technical reason.
+Report findings that existed before the change separately. They do not authorize
+fixes outside the task.
 
 ## Comments and documentation
 
 Explain non-obvious intent, constraints, side effects and failure modes. Public
-APIs document what names/types do not express. Use the language's normal style.
+APIs document what names/types do not express. Doc comments and docstrings use
+the language's normal style and follow the documentation rules. Other comments
+follow *Writing → Comments*.
 
 Code, comments, docstrings, tests and user-facing text must not cite agent
 contracts, rule IDs or instruction files, or explain compliance with them. Help
 describes the user's action and effects, not why a design satisfies a rule.
 Technical comments state actual constraints directly. Reasons for past
-decisions belong in the tracker, not in code. Tests verify behavior, not
+decisions belong in git history, not in code. Tests verify behavior, not
 contract wording.
 
 ## Test outcomes
@@ -230,6 +252,7 @@ Never restructure code to make it easier to test: no indirection, injection
 points, wider visibility or split functions that exist only for tests. Design
 for testability where the testable design is also the clean one. Where no clean
 design allows a test, leave the gap and name it as unverified in the summary.
+Test doubles live with the tests, never in a production package.
 
 Choose tests by distinct behavior and failure risk. Write the fewest tests that
 establish the changed behavior and distinguish it from the defect. Each test
@@ -274,11 +297,6 @@ and overrides *Never* and *Toolchain conformance* to that extent. List it
 separately in the summary. Report non-conformance outside that scope instead of
 fixing it.
 
-## Documentation scope
-
-Documentation made inaccurate by a change is in scope, even outside its code
-path. The writing contract governs how documentation and trackers are written.
-
 ## Workflow
 
 1. Establish goal, scope, protected invariants and evidence needed for
@@ -287,8 +305,8 @@ path. The writing contract governs how documentation and trackers are written.
     implementation.
 3. Implement a coherent edit batch, including relevant tests/docs.
 4. Apply fixers/formatters to explicit task files, then verify.
-5. Update the tracker and report the change in chat. Stop implementation when
-    its gates pass.
+5. Report the change in chat. Where the work has a tracker, update it first.
+    Stop implementation when its gates pass.
 
 ### Edit gate
 
@@ -306,14 +324,16 @@ affected region before another exact-text replacement.
 Use focused tests during iteration and required broader checks at completion.
 Keep concise outcomes and relevant failures, not repeated full logs. Re-run a
 passing check when its inputs change. Report its command, scope and result in
-chat; the tracker keeps the verification per item. Existing tests are not
-evidence that they passed.
+chat; a tracker, where one exists, keeps the verification per item. Existing
+tests are not evidence that they passed.
 
 ## Review
 
-Review from public input to resource or result and its failure message.
-Attribute each piece of machinery to the problem, the language, or another
-abstraction of the implementation; the last kind is a finding.
+When reviewing, follow each public input through to the resource or result it
+produces, and to the message a failure gives. For each piece of machinery on
+that path, decide what requires it: the problem, the language, or another
+abstraction in the implementation. Machinery that exists only to serve another
+abstraction is a finding.
 
 ## Definition of done
 
@@ -325,11 +345,12 @@ gates.
 
 ## Compression recovery
 
-Before handoff or compaction, bring the tracker up to date. It is the
-checkpoint; the writing contract defines its content.
+Where the work has a tracker, bring it up to date before handoff or compaction.
+It is the checkpoint, and the writing contract defines its content.
 
-Resume from the tracker and the project's reading map. Inspect status and
-scoped diffs, then only missing or changed inputs and their dependents. Do not
+Resume from the tracker where one exists, otherwise from the conversation
+summary. Inspect status and scoped diffs, then only missing or changed inputs
+and their dependents. Do not
 reload the whole tree, re-prove every pending edit or repeat settled decisions.
 If a checkpoint conflicts with current files, investigate that conflict locally.
 Answer user corrections/questions and apply their steering to the active task.

@@ -129,6 +129,12 @@ and its checkpoint for handoff and compaction. The user, or several agents
 started with different prompts, must be able to continue the work from it
 without prior conversations. Write it without steering toward one conclusion.
 
+Create a tracker only when the work must be continued without this conversation:
+it spans several sessions, is handed to another person or agent, or holds
+decisions the user has yet to make. A task that finishes in one session has no
+tracker, and its handoff is the chat summary. Do not create any other notes,
+progress or summary file unless the user asks for one.
+
 The tracker holds everything specific to the work package: its items, decisions,
 open questions and implementation state. For facts about the system that are not
 specific to the work package, link to the code and the authoritative documents.

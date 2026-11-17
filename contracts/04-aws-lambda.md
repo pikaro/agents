@@ -1,7 +1,6 @@
 # AWS Lambda contract
 
-Domain extension to Python and aws-python.md. Load only for Lambda handlers and
-runtime behavior. Read aws-python.md as well.
+Extends Python and AWS Python. Applies to Lambda handlers and runtime behavior.
 
 Use aws-lambda-powertools:
 

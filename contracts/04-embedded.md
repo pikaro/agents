@@ -160,8 +160,8 @@ ______________________________________________________________________
 
 ## Verification
 
-**Overrides *General → Workflow* step 5:** reasoning alone does not satisfy
-verification on device.
+**Adds to *General → Formatting and verification*:** reasoning alone does not
+satisfy verification on device.
 
 - State what was verified on hardware and what was only reasoned about.
 - Extend host-side tests for logic that does not touch hardware rather than
