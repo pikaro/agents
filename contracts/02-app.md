@@ -24,6 +24,14 @@ operational diagnosis. Do not log trivial code or add telemetry for speculative
 needs. Use stable event names plus structured fields, never interpolated data.
 Never log secrets, credentials, tokens or personal data.
 
+## Progress
+
+Report progress for waits a person notices, roughly one to two seconds or more.
+A batch of fast items reports once for the whole batch. Where a call's duration
+cannot be measured or estimated, for example an external API the tests cannot
+reach, choose a reasonable default, say in the handoff that it is unverified,
+and adjust it from the user's feedback.
+
 ## Name the patterns
 
 Name a recognized pattern only when it helps explain non-obvious control flow or

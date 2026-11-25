@@ -24,10 +24,13 @@ Extends General and IaC. OpenTofu, not Terraform.
     of a task, never between dependent edits. Needing them repeatedly mid-task
     means the task is too broad.
 - Prefer a JSON rendering of a supplied plan or state over its text rendering.
-- Express renames and removals as `moved` and `removed` blocks. Every `removed`
-    block declares `lifecycle { destroy = ... }`; say which was chosen.
-    Module-local moves go in the module's `moved.tf`, caller moves in the
-    deployment root.
+- Express renames as `moved` blocks. Module-local moves go in the module's
+    `moved.tf`, caller moves in the deployment root.
+- Use a removed block only with `lifecycle { destroy = false }` where an object
+    leaves the configuration without being destroyed, such as a handover to
+    another configuration. If deleting a resource also deletes something its
+    destroy needs, such as the provider configuration, remove the resource in
+    one apply and the rest in a later one.
 
 ## Versions
 
@@ -59,9 +62,9 @@ Extends General and IaC. OpenTofu, not Terraform.
 - Each check per *IaC → Validation* is one `validation` or `precondition` block:
     - Use `variable` -> `validation` for a self-contained check.
     - Use `terraform_data` -> `lifecycle { precondition }` for a cross-variable
-        invariant or evaluation against locals. Cross-variable `validation`
-        blocks are forbidden: they can crash OpenTofu itself catastrophically,
-        even though the language accepts them. Do not introduce them or convert
+        invariant or evaluation against locals. Cross-variable `validation` blocks
+        are forbidden: they can crash OpenTofu itself catastrophically, even
+        though the language accepts them. Do not introduce them or convert
         preconditions into them.
     - Use `precondition` on an output where the check belongs to the published
         contract.
@@ -272,8 +275,19 @@ it adds value.
 
 ## Toolchain
 
-- Module tests are `.tftest.hcl` files. They assert outputs and planned values,
-    not resource layout. Use `mock_provider` so a test needs no account.
+- Module tests are `.tftest.hcl` files. Use `mock_provider` so a test needs no
+    account. Assert outputs and the arguments of planned resources and data
+    sources. A local is implementation. Assert one only where it is passed
+    unchanged to a child module: that argument is what the consumer decides, and
+    a test cannot see the child's resources. What the child does with it is
+    tested in the child's own tests.
+- A test reaches planned resources and failing checks by their addresses, which
+    is the only way the language selects them. That does not make an address an
+    outcome to assert.
+- A mock fills computed attributes with placeholders, including a policy
+    document's rendered `json`. Assert the arguments the configuration supplies,
+    such as the document's `statement` blocks, not a mocked attribute or the
+    local that feeds those arguments.
 - Assert a rejection by the failing check's address in `expect_failures`. Never
     assert or parse error-message text.
 - *General → Conformance cleanup* also covers descriptions that restate type

@@ -55,11 +55,14 @@ Good: The policy in module X is to be rebuilt with an aws_iam_policy_document
 ### Relevance
 
 Every statement must matter to the subject of the document or to the active
-task. Report an unrelated finding in chat when it concerns correctness, security
-or data loss, or is likely to affect the active work. Give it one line, once,
-with its location and its criticality or urgency. Do not report findings that
-are only cosmetic. Do not analyze an unrelated finding, list its risks or record
-it in a file unless the user asks.
+task. A finding within the active work that the user must act on or decide
+carries enough context to do so without opening the code: where it is, what the
+code does, why that is wrong, what follows and what a fix changes. An unrelated
+finding gets one line, once, with its location and urgency, and only when it
+concerns correctness, security or data loss, or is likely to affect the active
+work. A caveat names a concrete consequence in this situation and what it
+requires. Do not report findings that are only cosmetic. Do not analyze an
+unrelated finding, list its risks or record it in a file unless the user asks.
 
 ### State, not history
 
@@ -163,7 +166,10 @@ specific to the work package, link to the code and the authoritative documents.
     - per item, the verification performed and its result, naming the test or
         command where needed to identify what was checked, or "not verified" with
         the reason;
-    - known failures not caused by this work.
+    - known failures not caused by this work;
+    - for an item another agent will implement: the condition that makes it
+        done, traps a reader of the code would miss, and when to stop and report
+        instead of continuing.
 - Environment facts that outlast the package belong in the project contract;
     link to them.
 

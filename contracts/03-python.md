@@ -119,8 +119,12 @@ aesthetic preference alone does not justify another model or API redesign.
 - Design for the count the domain actually produces, and justify the count before
     designing for it. A function over S3 objects will see thousands; a function
     over Terraform environments will not.
-- Do not add batching, concurrency, or pagination machinery for volumes the domain
-    cannot reach.
+- Judge scale by the total wait, which is the number of items times the cost of
+    each, not by the number of items alone. Independent subprocess or network
+    calls across tens of items, where a person waits for the result, may run in
+    a small thread pool with a stated bound. Anything those calls share must be
+    thread-safe. A thread pool inside sync code does not make the module async.
+    Do not add batching, concurrency or pagination for a wait nobody notices.
 - Where the plausible count is unclear, ask rather than assuming the large case.
 
 ## Composition and dependency injection
@@ -129,8 +133,9 @@ aesthetic preference alone does not justify another model or API redesign.
     it. Use constructor parameters for collaborators an object retains.
     `Protocol`s describe meaningful substitution or I/O boundaries; ordinary
     public function calls need no injected object or protocol. A protocol needs
-    two production implementations, or a boundary the project contract names.
-    A test fake is not an implementation.
+    a boundary the project contract names, or two production implementations.
+    An implementation the owner has committed to counts as one of them. A test
+    fake is not an implementation.
 - No service locator, no global registry, no import-time singleton, no
     framework-magic injection unless an applicable framework contract specifies it.
 - Free functions for stateless operations, including those taking explicit
@@ -157,6 +162,8 @@ aesthetic preference alone does not justify another model or API redesign.
     environment variable.
 - `Field` for constraints and descriptions. Validators for cross-field
     invariants, not for defaults.
+- A model that receives secrets sets `hide_input_in_errors=True`. Otherwise a
+    `ValidationError` repeats the secret.
 
 ## Logging
 
@@ -184,6 +191,13 @@ aesthetic preference alone does not justify another model or API redesign.
     shell activation is not required. Prefer `uv run --no-sync` when verifying an
     already provisioned environment. Do not create a second environment or fall
     back to global packages. Report an actually missing environment/dependency.
+- A virtualenv belongs to the machine that created it. Where the working tree
+    is shared with another machine, such as a host mounted into a sandbox, do
+    not run, sync or install into an environment that machine created. Create
+    your own outside the working tree from the project's lockfile, with
+    `UV_PROJECT_ENVIRONMENT` pointing at it, and treat it as the project
+    virtualenv for the rules here. This is the only reason to create a second
+    environment.
 - With no virtualenv, use only what the active interpreter already provides.
     Adding a dependency in that state is a blocking assumption.
 - `uv` manages the environment and the lockfile: `uv sync` to install, `uv run` to
@@ -247,6 +261,10 @@ Preference order, applied as a guideline rather than a checklist:
 - Document what the types do not express: units, ranges, side effects, raised
     exceptions, event-loop or thread expectations, and a surprising cost class.
 - Do not restate the name or signature, justify the design or tell its history.
+- Where a framework turns docstrings or field descriptions into user-facing
+    help, those strings are user documentation, written for the user. The
+    docstring brevity rules and conformance cleanup do not apply to them, and a
+    structural change leaves them unchanged.
 
 ## Tooling
 

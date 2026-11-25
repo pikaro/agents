@@ -5,8 +5,7 @@ there. Exactly one phase contract is active; the project contract declares
 which.
 
 Premise: the project is in active development. API compatibility is not a
-requirement. Preserving deployed resources is: an API change must not replace or
-rekey existing resources unless that is its purpose.
+requirement.
 
 ## Breaking changes
 
@@ -33,6 +32,7 @@ rekey existing resources unless that is its purpose.
 - No configuration switch to select old and new behavior. Pick the new behavior.
 - No transition or progress notes in code: no "until phase 2", migration
     checklists or deployment inventories. Coordination belongs in the handoff.
+    A marker for a known defect, such as a `FIXME`, is not a transition note.
 
 ## Simplification
 

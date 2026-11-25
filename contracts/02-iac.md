@@ -18,10 +18,9 @@ no apply, no plan, no state, no provider API, no credentials.
 - Flag in the summary any edit you expect to destroy, replace or move an object,
     and state the expected plan delta by address: created, updated, replaced,
     moved, destroyed. Without a plan that is the user's only warning.
-- State is unreachable. When an edit renames or removes a resource that is
-    already deployed, record the rename or removal in the configuration so the
-    tool can act on the existing object. Record nothing for resources that were
-    never deployed.
+- State is unreachable. When an edit renames a resource that is already
+    deployed, record the rename in the configuration so the tool can act on the
+    existing object. Record nothing for resources that were never deployed.
 
 ## Identity
 
@@ -44,9 +43,9 @@ no apply, no plan, no state, no provider API, no credentials.
 - Where an intermediate fails on invalid input, accept the native error if it
     identifies the offending input and problem. Otherwise guard only the failing
     expression so the relevant check runs and reports it. The guard's fallback,
-    such as `null`, only lets that check fail; it is never a plausible value
-    for resource construction to use. Never rebuild the intermediate in a
-    tolerant form solely for validation.
+    such as `null`, only lets that check fail; it is never a plausible value for
+    resource construction to use. Never rebuild the intermediate in a tolerant
+    form solely for validation.
 - Add custom validation for module semantics, unsafe combinations, silently
     ignored inputs and errors that would otherwise surface only at apply. Do not
     add a check that merely rewords an adequate language or provider error.
@@ -83,6 +82,16 @@ no apply, no plan, no state, no provider API, no credentials.
     dependents or other resources so that they tolerate the replacement.
 - Destruction protection does not solve this. It makes the plan fail instead of
     replacing the object.
+- When removing deployed resources, check that the set can be destroyed as a
+    whole in an order the provider accepts. Never keep one side of an attachment
+    or registration while removing the other. Where an object has deletion
+    protection on the provider side, such as a load balancer's, removal takes
+    two applies. Prepare the change that lifts the protection separately from
+    the change that removes the object, and state both in the handoff.
+- A resource is protected when replacing it loses state that cannot be restored,
+    such as stored data, or cascades through many dependents, such as networks,
+    subnets, attachments and widely referenced keys or roles. Never replace or
+    rekey a protected resource unless that is the purpose of the change.
 
 ## Versions
 
