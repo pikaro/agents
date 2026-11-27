@@ -5,8 +5,8 @@ Extends General and IaC. OpenTofu, not Terraform.
 ## Not Terraform
 
 - The CLI is `tofu`. The registry is `registry.opentofu.org`. For language and
-    CLI behavior HashiCorp documentation describes a different product; do not
-    cite it. Provider documentation remains authoritative for its provider.
+    CLI behavior, HashiCorp documentation describes a different product, so do
+    not cite it. Provider documentation remains authoritative for its provider.
 - No HCP Terraform or Terraform Enterprise: no `cloud` block, no Sentinel, no
     run tasks, no no-code modules.
 - Before using a language feature, check that OpenTofu implements it and not
@@ -46,17 +46,17 @@ Extends General and IaC. OpenTofu, not Terraform.
 - `any` is correct where the value is genuinely untypable: an opaque passthrough
     the module never reads, a container whose entries differ in shape, a
     structure the type system cannot express such as a recursive document, or a
-    parameter that operates on structure rather than content - a merge, a key
-    projection, a conformance check. Say which at the declaration.
+    parameter that operates on structure rather than content, such as a merge, a
+    key projection or a conformance check. Say which at the declaration.
 - Type the part that is knowable: `object({ id = string, payload = any })` beats
     `any`.
-- `map(any)` does not mean heterogeneous - every element converges to one type.
+- `map(any)` does not mean heterogeneous. Every element converges to one type.
     Where entries differ in shape the opacity belongs at the top, not inside a
     collection type.
 - A parameter typed `any` gives up its diagnostics. A typed parameter fails with
-    a named error at the call; `any` fails later and somewhere else. Weigh that
-    rather than treating it as a prohibition, and validate the structure you do
-    rely on.
+    a named error at the call, while `any` fails later and somewhere else. Weigh
+    that rather than treating it as a prohibition, and validate the structure
+    you do rely on.
 - Constrain object types. Use `optional()` with a default rather than a loose
     map. Use `nullable = false` where null is not a value.
 - Each check per *IaC → Validation* is one `validation` or `precondition` block:
@@ -86,11 +86,11 @@ Extends General and IaC. OpenTofu, not Terraform.
 
 ## Documentation
 
-- Every variable and output has a `description`. One line is a plain string;
-    anything longer is a heredoc.
+- Every variable and output has a `description`. A one-line description is a
+    plain string, and anything longer is a heredoc.
 - A variable's description mirrors its type field by field. Name every field of
     an object and the meaning of a map's key. Where the type comes from a shared
-    typedef, the description points at it instead; restating the fields per
+    typedef, the description points at it instead. Restating the fields per
     module is what produces drift.
 - Document what the type cannot express: units, sentinels, what `null` disables,
     the schema an opaque string must satisfy.
@@ -126,21 +126,21 @@ variable "permitted_principals" {
 }
 ```
 
-- Do **not** document a value's properties if they are already explicit - "read
-    is a bool" or "(default: true)" only create drift potential without
-    increasing clarity.
+- Do **not** document a value's properties if they are already explicit.
+    Statements such as "read is a bool" or "(default: true)" only create drift
+    potential without increasing clarity.
 
 ## Toggles and iteration
 
 - A new toggle uses `lifecycle { enabled }`, never `count`. It does not combine
-    with `for_each`; toggle an iterated resource by filtering its collection.
+    with `for_each`, so toggle an iterated resource by filtering its collection.
 - Converting an existing `count` toggle changes the resource's address (`x[0]`
     becomes `x`) and needs a `moved` block. Do it only when that is the task.
 - Referencing a disabled resource is an error. A context field whose component
     can be disabled is conditional:
     `kms = var.use_kms ? local.kms_context : null`.
-- `for_each` keys must be known at plan time. Prefer caller-defined keys;
-    composite keys from parent relationships, such as `<parent>.<child>`, are
+- `for_each` keys must be known at plan time. Prefer caller-defined keys.
+    Composite keys from parent relationships, such as `<parent>.<child>`, are
     natural. A resource attribute known at plan time may form a key where it
     expresses a real dependency. Stability follows *IaC → Identity*.
 - A `dynamic` block with a conditional collection is the mechanism for an
@@ -149,11 +149,11 @@ variable "permitted_principals" {
 ## Naming
 
 - Do not name a variable, local, output, key or iterator after a type or a
-    language keyword - `string`, `number`, `bool`, `list`, `set`, `map`,
+    language keyword: `string`, `number`, `bool`, `list`, `set`, `map`,
     `object`, `any`, `count`, `each`, `self`, `path`, `module`. They read as
     language constructs and some shadow one. Name the thing instead:
     `tag_filter`, `allowed_cidrs`, `subnet_ids`. A field that mirrors a provider
-    argument assigned straight across is the exception; say so at the
+    argument assigned straight across is the exception. Say so at the
     declaration.
 - `path.module` is a filesystem path shared by every call of a module. Never
     derive a module's identity from it.
@@ -223,14 +223,14 @@ it adds value.
     it whole and one flat output mirrors each top-level field. No output
     computes a value of its own.
 - `local.computed_output_context` mirrors the subset whose values are known
-    without creating the resources - constructed ARNs, URLs, names. It is
-    published as `output "computed_context"` and gets no flat outputs.
+    without creating the resources, such as constructed ARNs, URLs and names.
+    It is published as `output "computed_context"` and gets no flat outputs.
 - The computed context exists to break a dependency edge, such as naming an ARN
     in a policy before the resource exists. Compute and expose such values if
     they can be precomputed, otherwise they must be absent from the computed
     context.
 - Embed a child module's context whole: `kms = module.kms.context`. Do **not**
-    embed the whole module, as in `kms = module.kms` - this is a defect.
+    embed the whole module, as in `kms = module.kms`. That is a defect.
 - Pass a whole context into a consuming module when the consumer uses that
     component as one of its parts, such as a service module taking the KMS
     context it encrypts with. Otherwise pass the values it needs.
@@ -248,10 +248,10 @@ it adds value.
 
 - Input declarations live in `variables.tf`, or `variables.<concern>.tf` when
     large, each beside its validations and the cross-input preconditions that
-    check it. Resources and their locals live in files named for their concern;
-    checks of a resource's or output's own values stay with it. `outputs.tf`
+    check it. Resources and their locals live in files named for their concern,
+    and checks of a resource's or output's own values stay with it. `outputs.tf`
     holds only the context locals, the outputs and output validations. Template
-    seeds that colocate variables with resources are outdated; do not copy them.
+    seeds that colocate variables with resources are outdated. Do not copy them.
 - Keep each cohesive concern together. Split files when separation improves
     navigation or ownership, not merely to make files short. For example,
     `iam.execution.tf` and `iam.task.tf` could contain the execution and task
@@ -266,7 +266,7 @@ it adds value.
 ## Secrets
 
 - Where a secret value must be read, use an ephemeral resource and a write-only
-    attribute - a plain data source on a SecureString writes the cleartext into
+    attribute. A plain data source on a SecureString writes the cleartext into
     state.
 - Use `nonsensitive()` on values OpenTofu marks sensitive that are not secret
     where they are used, such as non-secret values read from an external KV

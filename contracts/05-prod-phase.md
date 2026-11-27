@@ -1,7 +1,7 @@
 # Prod phase contract
 
-Inactive unless the project contract declares it. Extends General; overrides the
-rules marked **phase-dependent** there. Mutually exclusive with Dev phase.
+Inactive unless the project contract declares it. Extends General and overrides
+the rules marked **phase-dependent** there. Mutually exclusive with Dev phase.
 
 Premise: the component has consumers that cannot be updated in the same change.
 Compatibility is a requirement.
@@ -18,11 +18,11 @@ ______________________________________________________________________
 
 ## Evolution rules
 
-- Change formats additively. Add fields; do not repurpose, renumber, or remove
-    them.
+- Change formats additively. Add fields instead of repurposing, renumbering or
+    removing them.
 - Readers tolerate unknown fields and absent optional fields.
-- Versioned formats carry an explicit version; readers handle every version still
-    in the field.
+- Versioned formats carry an explicit version, and readers handle every version
+    still in the field.
 - N-1 must be able to read what N writes, for as long as rollback to N-1 is
     possible.
 - Deprecate before removal: mark, document the replacement, keep the old path

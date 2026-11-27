@@ -15,7 +15,7 @@ This repository holds the agent contracts and the hook that assembles them.
     contract text.
 - Choose words deliberately. Agents work around contracts creatively, and
     naming a mechanism, such as a directory or a document type, nudges them
-    to create it. Brevity is not a goal; remove words only where that
+    to create it. Brevity is not a goal. Remove words only where that
     improves clarity.
 - Contracts never name contract files or tell the agent to load files. The
     agent sees only the injected text.

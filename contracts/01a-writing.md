@@ -1,10 +1,11 @@
 # Writing contract
 
-Applies to everything written for a person: documentation, project contracts,
-trackers and chat. It holds alongside every contract layer and is not one of
-them. Project contracts may require specific content. This contract governs how
-that content is written and kept, never whether required information is left
-out.
+Applies to everything written for a person: documentation, code comments,
+descriptions and docstrings, error and help messages, project contracts,
+trackers and chat. New text follows it even where the text around it does not.
+It holds alongside every contract layer and is not one of them. Project
+contracts may require specific content. This contract governs how that content
+is written and kept, never whether required information is left out.
 
 ## Rules for all writing
 
@@ -20,11 +21,14 @@ These rules are general prescriptions and may be overridden by subsequent
 sections.
 
 - Write plain, complete sentences. Say who does what.
-- Write in natural, flowing prose. Avoid stylistic patterns commonly associated
-    with AI-generated text, particularly em dashes, unusual or decorative
-    punctuation, semicolons joining independent clauses, and sequences of short,
-    choppy sentences. Prefer conventional punctuation, varied sentence lengths,
-    and smooth transitions between ideas.
+- Write in natural, flowing prose with conventional punctuation, varied
+    sentence lengths and smooth transitions. Avoid sequences of short, choppy
+    sentences and decorative punctuation.
+- Connect two statements with a word that says how they relate, such as
+    because, but, so or unless, or make them two sentences. Do not join them
+    with a semicolon or a dash, including a hyphen used as a dash. These marks
+    leave the relation for the reader to work out, like a dropped connecting
+    word.
 - Use the vocabulary the reader already has: established technical terms and
     names from the project, its tools and its contracts.
 - Do not coin labels or use a term in an unusual sense where a plain description
@@ -48,8 +52,7 @@ sections.
 
 ```text
 Bad:  Policy fix deferred; ds migration pending SDN triage.
-Good: The policy in module X is to be rebuilt with an aws_iam_policy_document
-      data source. This depends on the SDN fix and is scheduled after it.
+Good: The policy fix is on hold. The data source migration is waiting for SDN triage.
 ```
 
 ### Relevance
@@ -121,6 +124,9 @@ READMEs, design documents, runbooks and project contracts.
 
 - Comments should not use full sentences and should not end with a full stop.
     They should be concise and to the point and should scan quickly.
+- Give each fact its own comment line, or connect two facts with a dash or a
+    word that says how they relate. Comments are exempt from complete sentences
+    and from the rule against dashes, but not from the rule against semicolons.
 - Use markers like `WARNING` or `BUG` where you need to highlight specific
     comments in the user's editor.
 
@@ -150,8 +156,9 @@ specific to the work package, link to the code and the authoritative documents.
     current state, not a history of proposals, decisions and results:
     - the situation and why it matters;
     - its criticality or urgency, where that affects the order of work;
-    - while open, the options; once decided, the decision. Where real alternatives
-        were considered, add a short comparison and why they lost;
+    - the options while it is open, and the decision once it is decided. Where
+        real alternatives were considered, add a short comparison and why they
+        lost;
     - the effect on live systems, and risks not yet verified;
     - a status. Choose status values that fit the work (for example open, decided,
         deferred, implemented, deployed) and use them consistently. Use separate
@@ -198,4 +205,4 @@ specific to the work package, link to the code and the authoritative documents.
     at every step.
 
 Update the tracker whenever a decision or an item's status changes. Never delete
-a tracker; the user archives it.
+a tracker. The user archives it.

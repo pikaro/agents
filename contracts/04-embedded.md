@@ -23,17 +23,17 @@ ______________________________________________________________________
 
 ## Memory
 
-- No dynamic allocation after initialization. Allocate during startup;
+- No dynamic allocation after initialization. Allocate during startup, so that
     steady-state code allocates nothing.
 - No allocation in the output loop, in a callback, or in an interrupt handler.
     This includes the implicit kind: growing a container, constructing a
     `std::string`, formatting into an owning string, capturing a lambda into a
     `std::function`.
 - Containers have fixed capacity, declared at compile time. `static_assert` the
-    bound where it is statically known; handle the full case explicitly where it
-    is not.
+    bound where it is statically known, and handle the full case explicitly
+    where it is not.
 - Every buffer is bounded, with a documented limit and a deliberate behavior on
-    overflow - drop, overwrite, or reject - named in a comment.
+    overflow (drop, overwrite, or reject) named in a comment.
 - Report RAM and flash impact when a change adds a non-trivial static
     allocation, a new buffer, or a heavyweight dependency.
 - Avoid facilities that pull in large runtime machinery: iostreams,
@@ -55,7 +55,7 @@ ______________________________________________________________________
 ## Error handling
 
 - No exceptions and no RTTI. Report unrecoverable conditions through the
-    project's error path; recoverable ones through a return value.
+    project's error path and recoverable ones through a return value.
 - Prefer an explicit result type over an out-parameter plus boolean.
 - A failure in the output loop degrades gracefully. It does not stall the loop
     and does not reset the device unless project policy says it should.
@@ -95,7 +95,7 @@ ______________________________________________________________________
 - Respect the watchdog. Report any change that lengthens a critical section or
     adds work to a loop.
 - Prefer integer and fixed-point arithmetic. Use single-precision `float` where
-    floating point is needed; avoid `double`, which is emulated or markedly
+    floating point is needed. Avoid `double`, which is emulated or markedly
     slower.
 
 ______________________________________________________________________
@@ -109,8 +109,8 @@ ______________________________________________________________________
     *C++ → Configuration visibility*: where the same code is compiled for
     different hardware roles, the role is selected by a build-level flag.
 - Keep that selector narrow. Use the flag once, to pick a `constexpr`
-    configuration object or a HAL type; all downstream code reads the `constexpr`
-    value rather than testing the flag again.
+    configuration object or a HAL type. All downstream code reads the
+    `constexpr` value rather than testing the flag again.
 - Adding a role-level build flag, or changing how a role is selected, is a
     blocking assumption. The project contract lists the roles that exist.
 
@@ -121,8 +121,8 @@ ______________________________________________________________________
 - Rebuild only the environments a change directly affects. An environment is
     affected when it actually compiles the changed file.
 - A changed header affects only the environments that include it, directly or
-    transitively. Determine that set with the tools; do not infer it from the file
-    being shared code.
+    transitively. Determine that set with the tools rather than inferring it
+    from the file being shared code.
 - Keeping shared code compatible across environments is a correctness
     requirement, not a build instruction. It does not mean rebuilding every
     environment on every change.
@@ -136,8 +136,8 @@ ______________________________________________________________________
 
 - Flash and NVS have limited write endurance. Never write persistent storage from
     a loop, a per-frame path, or a per-message path.
-- Persist on an explicit event - configuration change, shutdown, operator command
-    - and coalesce repeated changes.
+- Persist on an explicit event, such as a configuration change, shutdown or
+    operator command, and coalesce repeated changes.
 - A write interruptible by a reset must leave the stored state readable. State in
     a comment how that is guaranteed.
 
@@ -150,8 +150,8 @@ ______________________________________________________________________
     instrumentation where it helps debugging or optimization.
 - Gate every statement added for debugging or optimization behind its respective
     compile-time constant, such that the default configuration compiles it out
-    entirely. Many project macros already do this; custom statements need their own
-    gate.
+    entirely. Many project macros already do this, but custom statements need
+    their own gate.
 - Instrumentation that survives the session is documented and gated.
     Instrumentation that does not is removed before finishing, not left disabled.
 - Never log inside an ISR. Never format a log message in the output loop.

@@ -31,7 +31,7 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## Configuration visibility - `constexpr`, not `#define`
+## Configuration visibility: `constexpr`, not `#define`
 
 Concrete form of *General → Configuration visibility*.
 
@@ -50,7 +50,7 @@ Preprocessor use outside this restriction:
     selection, and node identity when the same code is compiled for different
     hardware roles. See *Embedded → Startup and identity*.
 - Function-like macros where a macro is the appropriate mechanism.
-- Include guards; prefer `#pragma once` where the project already uses it.
+- Prefer `#pragma once` over macro-based include guards.
 - Macros required by an external SDK or library.
 - Compile-time gates for diagnostic instrumentation, per *Embedded → Diagnostics
     on device*.
@@ -65,8 +65,8 @@ ______________________________________________________________________
 **Keep template bodies small.** clangd does not analyze uninstantiated template
 bodies, so code inside a template loses diagnostics, completion and reliable
 go-to-definition. The cost is per line inside the template, not per template: a
-thin API overload, mixin or container pays almost nothing; a large class body
-that became a template incidentally is unnavigable and unreviewable.
+thin API overload, mixin or container pays almost nothing, but a large class
+body that became a template incidentally is unnavigable and unreviewable.
 
 Do not make a class a template because one of its member functions must accept
 several types. Template the function, not the class.
@@ -120,9 +120,10 @@ The constraint rule depends on how the parameter is supplied:
 
 - **Deduced from a caller's argument:** constrain with a concept. An
     unconstrained `template <typename T>` on a deduced API parameter is a defect.
-- **Supplied explicitly and complete at instantiation** - policy types, container
-    element types: constrain with a concept expressing what the code requires
-    (`std::movable`, `std::trivially_copyable`, a project concept).
+- **Supplied explicitly and complete at instantiation:** constrain with a
+    concept expressing what the code requires (`std::movable`,
+    `std::trivially_copyable`, a project concept). This covers policy types and
+    container element types.
 - **CRTP `Derived`:** an unconstrained `template <typename Derived>` is correct
     here, and required. The derived type is incomplete where the base is
     instantiated, so a concept inspecting its members is ill-formed or silently
@@ -146,7 +147,8 @@ class HasFrameSink {
 - Never SFINAE where a concept works.
 - Do not template on a value that is ordinary configuration. Template on a value
     only where it must affect layout, capacity or unrolling.
-- Do not add a template parameter for future flexibility; see *General → Never*.
+- Do not add a template parameter for future flexibility (see *General →
+    Never*).
 - Do not add a template parameter to a mixin that does not need one. A mixin
     takes `Derived` and nothing else unless a second parameter earns its place.
 
@@ -156,15 +158,16 @@ ______________________________________________________________________
 
 Concrete form of *General → Type discipline*.
 
-- Encode invariants in types: a value with a unit gets a strong type, not a bare
-    `float`; a closed set of states gets an `enum class`, not an `int`; a value
-    that cannot be null is a reference or a value, not a pointer.
+- Encode invariants in types:
+    - a value with a unit gets a strong type, not a bare `float`
+    - a closed set of states gets an `enum class`, not an `int`
+    - a value that cannot be null is a reference or a value, not a pointer
 - Do not weaken a signature to make a call site compile: no `void*`, no
     `reinterpret_cast` between project types, no dropping `const`, no non-`const`
     reference parameter used only to avoid a copy.
 - Parameters that form one concept or share invariants are a missing type.
-    Group them into a struct - typically `Component/Interfaces/Config.hpp` -
-    and pass by `const&`. Argument count alone does not justify a struct.
+    Group them into a struct, typically in `Component/Interfaces/Config.hpp`,
+    and pass it by `const&`. Argument count alone does not justify a struct.
 - Two adjacent parameters of the same type are a call-site hazard. Use distinct
     strong types.
 
@@ -177,7 +180,7 @@ Concrete form of *App → Performance*.
 In hot or latency-sensitive paths, prefer:
 
 - stack allocation over heap allocation
-- value semantics; minimize copies of non-trivial types, and move instead
+- value semantics, moving non-trivial types instead of copying them
 - `std::span` and `std::string_view` over owned containers where the callee does
     not store the argument
 - reserving container capacity once, outside the loop
@@ -189,11 +192,11 @@ Do not apply these in non-critical paths at the cost of clarity.
 
 ______________________________________________________________________
 
-## Includes - IWYU
+## Includes (IWYU)
 
 Concrete form of *General → Dependency and surface hygiene*.
 
-- Include everything you use; include nothing you do not use.
+- Include everything you use and nothing you do not use.
 - Never rely on a transitive include. Using a symbol means including its header,
     or forward-declaring it.
 - Forward-declare instead of including where only a declaration is needed and the
@@ -205,7 +208,7 @@ Concrete form of *General → Dependency and surface hygiene*.
 
 ______________________________________________________________________
 
-## Toolchain conformance - clangd
+## Toolchain conformance (clangd)
 
 Concrete form of *General → Toolchain conformance*.
 
@@ -219,7 +222,7 @@ Concrete form of *General → Toolchain conformance*.
 ### Analyzability
 
 Treat clangd's ability to analyze the code as a significant design factor,
-weighted alongside correctness and clarity - not as a veto.
+weighted alongside correctness and clarity, not as a veto.
 
 - Where two designs are otherwise comparable, choose the one clangd can analyze.
     This is the reason for `constexpr` over `#define`, `if constexpr` over `#if`,
@@ -239,15 +242,16 @@ ______________________________________________________________________
 
 Concrete form of *App → Component structure*.
 
-- Title-case directory names are public code; lower-case directories are private.
+- Title-case directory names are public code, and lower-case directories are
+    private.
 - Private means not included directly by a consumer. A consumer includes
-    `Component/Facade.hpp`; nothing outside the component includes a `detail/`
-    header.
+    `Component/Facade.hpp`, and nothing outside the component includes a
+    `detail/` header.
 - Core logic lives in `Component/detail/` headers. One of them declares the
-    component's primary public type, e.g. `Logging/detail/Logger.hpp` - public in
-    the sense that the facade re-exports it, private in the sense that it is
-    reached through the facade. Additional `detail/` headers hold supporting code
-    that type depends on directly.
+    component's primary public type, e.g. `Logging/detail/Logger.hpp`. That
+    header is public in the sense that the facade re-exports it, and private in
+    the sense that it is reached through the facade. Additional `detail/`
+    headers hold supporting code that type depends on directly.
 - Modular components live in separate trees: a `ConsoleOutput` that plugs into
     the `Logger` is `Logging/Outputs/ConsoleOutput.hpp`.
 - Interfaces and interface types such as configuration structs live in

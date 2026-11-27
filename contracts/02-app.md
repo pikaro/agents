@@ -1,7 +1,7 @@
 # App contract
 
-Kind contract for application code. Extends General; mutually exclusive with
-IaC. Language contracts give the concrete mechanisms.
+Kind contract for application code. Extends General and is mutually exclusive
+with IaC. Language contracts give the concrete mechanisms.
 
 ## Performance
 
@@ -14,7 +14,7 @@ rule or measurement, assume a path is non-critical.
 Keep components cohesive with explicit public entry points. Separate interfaces
 and implementation where actual dependency, ownership or optional-loading
 constraints warrant it. Keep interface/configuration/data types importable
-without optional subsystems. Dependencies are acyclic; optional parts live
+without optional subsystems. Dependencies are acyclic, and optional parts live
 separately. Language rules map these boundaries to modules/packages.
 
 ## Logging and metrics

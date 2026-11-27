@@ -6,18 +6,18 @@ deployment root's own configuration.
 
 - `module_context`, `data_context`, `alerting_context`, `backup_context` and
     `archive_context` pass through to every child module. A child that does not
-    use one still declares it; that is intended, not an unused variable.
-- `use_*` names a feature flag; `create_*` names the choice between creating a
-    resource and accepting an existing one. A persistent resource you add honors
-    `var.prevent_destroy`.
+    use one still declares it. That is intended, not an unused variable.
+- `use_*` names a feature flag, and `create_*` names the choice between
+    creating a resource and accepting an existing one. A persistent resource
+    you add honors `var.prevent_destroy`.
 - Before adding a new input, feature or group of resources, find the matching
     template in `landing-zone-common-templates/conditional` and an existing
     consumer, and follow the pattern they establish, such as module-owned log
     groups or the KMS create-or-external-key choice. Adapt the service-specific
-    details; ask where the pattern is unclear. Fix a template defect at its
+    details, and ask where the pattern is unclear. Fix a template defect at its
     source rather than copying it.
 - Do not add, change or remove OpenTofu or provider version constraints,
-    including `required_providers` blocks; the templates own them. Where a
+    including `required_providers` blocks. The templates own them. Where a
     change needs a newer version, report it for the template instead. This
     overrides *IaC → Versions*.
 

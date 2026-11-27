@@ -7,10 +7,10 @@ scope.
 
 From general to specific: General, Kind, Language, Domain, Phase, Project. Kind
 is App for application code or IaC for infrastructure code, never both. Exactly
-one phase is active. More specific rules win; apply the relevant phase before
+one phase is active. More specific rules win, so apply the relevant phase before
 phase-dependent rules. Report an unresolved consequential conflict once. Do not
 re-report a conflict the project already explicitly resolves. The writing
-contract is not a layer; it applies alongside all of them.
+contract is not a layer but applies alongside all of them.
 
 Where no phase contract is present, a schema, wire or persisted-format change is
 ask-first, and code the change makes redundant is removed.
@@ -18,8 +18,8 @@ ask-first, and code the change makes redundant is removed.
 Do not copy general principles into each lower layer.
 
 Only the AGENTS.override.md or CLAUDE.local.md in the current directory is
-authoritative. DO NOT read these files from other directories you operate in -
-they will at best contain the same text, and at worst contain incorrect,
+authoritative. DO NOT read these files from other directories you operate in.
+They will at best contain the same text, and at worst contain incorrect,
 contradictory or outdated text.
 
 ## Agent role
@@ -63,8 +63,8 @@ concepts, representations and indirections, with behavior that can be followed
 locally.
 
 A human must be able to read, review and maintain the code. Human attention,
-working memory and time are limited. Keep related reasoning together; avoid
-making the reader reconstruct one operation across many files or layers.
+working memory and time are limited. Keep related reasoning together so that the
+reader does not have to reconstruct one operation across many files or layers.
 
 Start with direct code and concrete dependencies. Introduce a layer, interface,
 model, module or extension point when it represents a meaningful domain concept,
@@ -80,9 +80,9 @@ breaking callers, such as a collection keyed by names the caller chooses instead
 of a single value or a positional list. Do not remove a capability only because
 current callers leave it unused.
 
-Small cohesive functions are welcome; forwarding layers and parallel hierarchies
-need the same justification as other abstractions. Apply this within the
-authorized task; it does not authorize a general rewrite.
+Small cohesive functions are welcome, but forwarding layers and parallel
+hierarchies need the same justification as other abstractions. Apply this within
+the authorized task. It does not authorize a general rewrite.
 
 ### Public surface over internals
 
@@ -90,12 +90,12 @@ A caller should predict behavior, failure mode, side effects and cost from the
 API. No hidden I/O, argument mutation or global state. Keep complexity behind a
 clear interface.
 
-Reject invalid or ambiguous input before interpreting it; never resolve it to a
-plausible value for a separate check to reject. Accept only what the
-implementation supports; reject the rest naming the offending entry, never drop
-or coerce it. Do not reject input merely because it is unused, such as a catalog
-or staged configuration. A setting the implementation would silently ignore is a
-defect.
+Reject invalid or ambiguous input before interpreting it, and never resolve it
+to a plausible value for a separate check to reject. Accept only what the
+implementation supports. Reject the rest with an error naming the offending
+entry, and never drop or coerce it. Do not reject input merely because it is
+unused, such as a catalog or staged configuration. A setting the implementation
+would silently ignore is a defect.
 
 ## Refusals and assumptions
 
@@ -103,8 +103,8 @@ Classify assumptions internally. Routine naming and implementation choices do
 not need a narrated checklist or repeated approval.
 
 A missing fact is blocking when it changes correctness, feasibility or
-authorized scope and the available evidence cannot resolve it. State the gap and
-ask for the smallest necessary decision; continue independent work. Do not
+authorized scope and the available evidence cannot resolve it. State the gap,
+ask for the smallest necessary decision and continue independent work. Do not
 invent missing functionality or fragile workarounds.
 
 Establish a fact from its source, not from a name, an analogy or how callers
@@ -121,7 +121,7 @@ authorization and accepted decisions persist across compaction and sessions.
 
 ### Always
 
-- Keep diffs scoped; preserve unrelated edits.
+- Keep diffs scoped and preserve unrelated edits.
 - Report correctness, data-loss, security and major performance issues.
 - Update documentation made inaccurate by the current change, even outside its
     code path.
@@ -187,13 +187,13 @@ Judge readability across the implementation and its call sites, including the
 signature, arguments and navigation required. Prefer a coherent operation over a
 chain of helpers that merely names its individual steps. Keep straightforward
 expressions and readable sequences of local values direct. Neither line count
-nor purity decides the boundary. Apply this judgment to the changed scope; it
+nor purity decides the boundary. Apply this judgment to the changed scope. It
 does not authorize a general rewrite of existing functions.
 
 A function takes the values it operates on. Pass a whole object where it
 represents the thing the function is about, such as the context describing a
-VPC; do not pass a broad request merely to reach a few unrelated fields. Compute
-an intermediate used in several places once and pass it.
+VPC, but not a broad request merely to reach a few unrelated fields. Compute an
+intermediate used in several places once and pass it.
 
 Give input interpretation one authoritative definition: defaults, precedence and
 validation must not be reconstructed independently by successive callers. Pass
@@ -204,7 +204,7 @@ required, make that read explicit.
 
 Check the shared libraries the project provides or a contract names before
 introducing a local equivalent. Reuse an existing definition whose semantics
-fit, even where a local reimplementation would be shorter; a second definition
+fit, even where a local reimplementation would be shorter. A second definition
 of a shared rule is drift waiting to happen.
 
 Choose ownership separately from function extraction. Implementation belongs
@@ -289,8 +289,8 @@ Assert public results, state changes, exit codes and emitted data, not private
 call sequences or implementation layout. Parse machine output. Human-output
 tests check useful information and safety signals, not incidental copy, line
 numbers, spacing or markup tags. Do not locate an output field by its prose
-description. Exact bytes belong to external protocols or verbatim preservation;
-focused layout tests may check alignment/order when that is the requirement. Use
+description. Exact bytes belong to external protocols or verbatim preservation.
+Focused layout tests may check alignment/order when that is the requirement. Use
 valid fixtures and isolate user configuration and credentials. Do not weaken
 meaningful assertions merely to make a test pass.
 
@@ -298,7 +298,7 @@ An assertion checks an outcome only if two things hold: a change that keeps
 every result a consumer can observe does not break it, and a defect in the
 behavior it names makes it fail. Check both before keeping an assertion. An
 assertion whose expected value comes from the code under test, or that passes
-whatever that code does, checks nothing; delete it.
+whatever that code does, checks nothing. Delete it.
 
 Names, keys and positions that the implementation chooses are not outcomes. Do
 not assert them, and do not use them to find the thing under test. Select by
@@ -310,7 +310,7 @@ references.
 
 A test must exercise the behavior it claims to verify. A test using substituted
 dependencies establishes behavior only under the assumptions those substitutes
-model; it does not verify the dependencies themselves. Choose verification
+model and does not verify the dependencies themselves. Choose verification
 appropriate to the consequential failure being investigated, and state what
 remains unverified.
 
@@ -326,8 +326,8 @@ should detect a plausible consequential defect not already adequately covered.
 
 Test shared behavior primarily at its owning boundary. Consumer tests cover
 integration and consumer-specific decisions without repeating the shared matrix.
-Combine dimensions only where their interaction matters; do not generate a test
-per validation branch or an exhaustive negative matrix by default.
+Combine dimensions only where their interaction matters, and do not generate a
+test per validation branch or an exhaustive negative matrix by default.
 
 Do not add tests solely for constant declarations, trivial forwarding, library
 behavior or coverage percentages. Test count is not a goal. Keep focused
@@ -353,17 +353,17 @@ asked:
     behavior.
 - Documents: remove helper inventories, test lists, migration checklists,
     progress narratives, superseded text and facts duplicated from their
-    authoritative home; link to it instead.
-- Local names - locals, iterators, private parameters - that break naming rules.
-    Public names are API and out of scope.
+    authoritative home, and link to that home instead.
+- Local names that break naming rules, such as locals, iterators and private
+    parameters. Public names are API and out of scope.
 - Suppressions without a rule and reason: add them, or remove the suppression
     where the checker no longer reports the finding.
 - Unused imports, includes, locals and dependencies.
 
-This cleanup changes no runtime behavior or public surface; it needs no approval
-and overrides *Never* and *Toolchain conformance* to that extent. List it
-separately in the summary. Report non-conformance outside that scope instead of
-fixing it.
+This cleanup changes no runtime behavior or public surface, so it needs no
+approval and overrides *Never* and *Toolchain conformance* to that extent. List
+it separately in the summary. Report non-conformance outside that scope instead
+of fixing it.
 
 ## Workflow
 
@@ -399,7 +399,7 @@ region before another exact-text replacement.
 Use focused tests during iteration and required broader checks at completion.
 Keep concise outcomes and relevant failures, not repeated full logs. Re-run a
 passing check when its inputs change. Report its command, scope and result in
-chat; a tracker, where one exists, keeps the verification per item. Existing
+chat. A tracker, where one exists, keeps the verification per item. Existing
 tests are not evidence that they passed.
 
 ## Review

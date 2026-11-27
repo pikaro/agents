@@ -1,8 +1,8 @@
 # Dev phase contract
 
-Active phase. Extends General; overrides the rules marked **phase-dependent**
-there. Exactly one phase contract is active; the project contract declares
-which.
+Active phase. Extends General and overrides the rules marked
+**phase-dependent** there. Exactly one phase contract is active, and the
+project contract declares which.
 
 Premise: the project is in active development. API compatibility is not a
 requirement.
@@ -17,7 +17,7 @@ requirement.
     reason to keep a faulty interface. Flag it in the handoff, summarize what
     must change and why, and offer to provide the change set.
 - Overrides *General → Ask first* for schema, wire-format and persisted-format
-    changes: breakage alone is not a reason to ask. Scope still is - a change
+    changes: breakage alone is not a reason to ask. Scope still is. A change
     touching many call sites, or shared code beyond the task's path, remains
     ask-first for its blast radius.
 
@@ -40,12 +40,12 @@ requirement.
     a feature toggle, draft or experiment that is currently unused.
 - Where a change makes existing code redundant, remove it. Dead code left behind
     is an incomplete change.
-- Where a change elsewhere has made a construct unnecessary - a parameter now
-    always the same, a branch now unreachable, an abstraction now with one
-    implementation, a conversion now between identical types - simplify it.
+- Simplify a construct that a change elsewhere has made unnecessary, such as a
+    parameter now always the same, a branch now unreachable, an abstraction now
+    with one implementation or a conversion now between identical types.
 - Overrides *General → Refactoring* and *General → Never* to this extent: the
     simplification must be *enabled by* a change in the active work package and
-    traceable to it. Opportunistic cleanup that is not is out of scope - report
+    traceable to it. Opportunistic cleanup that is not is out of scope. Report
     it instead.
 - Where the enabled simplification is large or crosses into shared code, report
     it and ask rather than performing it.

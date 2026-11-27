@@ -13,5 +13,5 @@ Extends Python. Applies to AWS client integrations and their tests.
     at the specific operation that needs it.
 - Verify access-denied, missing-resource and malformed-response behavior where
     relevant. Project contracts define the actual account/access model.
-- CLI handover for a human session is distinct from SDK data access; preserve
+- CLI handover for a human session is distinct from SDK data access. Preserve
     the child's terminal and exit semantics through a typed wrapper.

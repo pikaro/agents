@@ -1,7 +1,7 @@
 # IaC contract
 
-Kind contract for infrastructure code. Extends General; mutually exclusive with
-App. Language contracts give the tool-specific mechanisms.
+Kind contract for infrastructure code. Extends General and is mutually
+exclusive with App. Language contracts give the tool-specific mechanisms.
 
 ## Boundary
 
@@ -35,15 +35,15 @@ no apply, no plan, no state, no provider API, no credentials.
 ## Validation
 
 - Within a module, implement each rule once. A check on a derived value
-    references the intermediate value that resource construction uses; it does
-    not compute that value a second time.
+    references the intermediate value that resource construction uses instead
+    of computing that value a second time.
 - Where a later step loses information a check needs, such as deduplicating,
     merging or projecting keys, check the value before that step. This never
     justifies loosening an input's declared type.
 - Where an intermediate fails on invalid input, accept the native error if it
     identifies the offending input and problem. Otherwise guard only the failing
     expression so the relevant check runs and reports it. The guard's fallback,
-    such as `null`, only lets that check fail; it is never a plausible value for
+    such as `null`, only lets that check fail and is never a plausible value for
     resource construction to use. Never rebuild the intermediate in a tolerant
     form solely for validation.
 - Add custom validation for module semantics, unsafe combinations, silently
@@ -67,8 +67,8 @@ no apply, no plan, no state, no provider API, no credentials.
     deduplicate checks. Depend on the specific resource or output a step needs,
     never a whole component.
 - An output that other configurations consume depends on everything they need to
-    use it - shares, grants, policies - not only on the resource that yields the
-    ID. Otherwise a consumer can receive the ID before it has access.
+    use it, such as shares, grants and policies, not only on the resource that
+    yields the ID. Otherwise a consumer can receive the ID before it has access.
 - When the provider requires one resource to exist before another, express it as
     a reference or explicit dependency, not only in a comment or description.
     Check that destroy then runs in a working order as well.
@@ -104,17 +104,17 @@ no apply, no plan, no state, no provider API, no credentials.
 - No secret value in the repository, in a variable file, or in a default. State
     and plan files hold secrets in cleartext and are never committed.
 - Where possible, do not generate secret values such as passwords or private
-    keys through the deployment tool; they end up in state. Pass a reference
+    keys through the deployment tool. They end up in state. Pass a reference
     such as a parameter ARN and let the consumer resolve the value.
 - Redacting an output is not storage security.
 
 ## Structure and tests
 
 - Do not write a module for hypothetical reuse. Do not create a module that has
-    one caller and only passes its variables through; report an existing one.
+    one caller and only passes its variables through. Report an existing one.
 - Mocks do not enforce provider prerequisites, ordering, replacement or
     authorization. Establish those by reading the configuration and the
-    provider's documentation or source; report what remains unverified rather
-    than adding mock cases.
+    provider's documentation or source, and report what remains unverified
+    rather than adding mock cases.
 - Never add a dependency, variable, output or resource to production
     configuration only to work around a test-runner limitation.

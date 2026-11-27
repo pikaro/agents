@@ -2,10 +2,10 @@
 
 Extends Python. Applies to HTTP APIs built with FastAPI.
 
-- HTTP APIs use FastAPI and async handlers. Handlers parse, delegate and return;
-  business logic lives in an injected service.
-- Declare response_model explicitly. Services raise domain errors; only the HTTP
-  boundary maps them to HTTPException/status codes.
+- HTTP APIs use FastAPI and async handlers. Handlers parse, delegate and return.
+  Business logic lives in an injected service.
+- Declare response_model explicitly. Services raise domain errors, and only the
+  HTTP boundary maps them to HTTPException/status codes.
 - FastAPI Depends is the explicit exception to constructor-only injection.
   Keep framework-specific injection at the API boundary.
 - Do not perform blocking I/O in an async handler without an explicit bridge.

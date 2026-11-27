@@ -9,15 +9,16 @@ Extends General and App with Python-specific requirements.
     backport imports, no `typing_extensions` for anything the standard library
     provides.
 - Write current Python:
-    - `list[str]`, `dict[str, int]`, `X | None` - never `typing.List`,
-        `typing.Dict`, `typing.Optional`, `typing.Union`
+    - `list[str]`, `dict[str, int]` and `X | None` instead of `typing.List`,
+        `typing.Dict`, `typing.Optional` and `typing.Union`
     - PEP 695 syntax: `def first[T](items: Sequence[T]) -> T`, `class Repo[T]:`,
         `type UserId = int`
     - `Self`, `override`, `Protocol`, `TypedDict`, `Literal`, `Final`, `Never`
-    - no `from __future__ import annotations`; annotation evaluation is already
-        deferred
-    - `pathlib` over `os.path`; `datetime.now(UTC)`, never a naive datetime;
-        `StrEnum` / `IntEnum` over string and int constants
+    - no `from __future__ import annotations` (annotation evaluation is already
+        deferred)
+    - `pathlib` over `os.path`
+    - `datetime.now(UTC)`, never a naive datetime
+    - `StrEnum` / `IntEnum` over string and int constants
     - `match` where it is clearer than an `if` chain, not as decoration
 
 ## Aesthetics
@@ -33,8 +34,8 @@ aesthetic preference alone does not justify another model or API redesign.
     a confusing interface. Use the formatter for mechanical style.
 - Expressive names. No abbreviations that are not domain terms.
 - Early return over nesting. Maximum nesting depth of three inside a function.
-- A comprehension where it reads as one thought; a loop where it does not. Never
-    a nested comprehension.
+- A comprehension where it reads as one thought, and a loop where it does not.
+    Never a nested comprehension.
 - No dictionaries as ad-hoc records, no tuples as ad-hoc structs, no strings as
     ad-hoc enums.
 - Nothing that costs a reader a second pass: no walrus inside a comprehension
@@ -46,9 +47,9 @@ aesthetic preference alone does not justify another model or API redesign.
 - Fully typed: every parameter, return value, attribute and module-level
     constant.
 - `pyright` in strict mode reports zero errors.
-- `Any` is a defect except at a genuine boundary - deserialized external input, a
-    third-party API with no stubs. Narrow it at that boundary and never propagate
-    it inward.
+- `Any` is a defect except at a genuine boundary, such as deserialized external
+    input or a third-party API with no stubs. Narrow it at that boundary and
+    never propagate it inward.
 - Suppression syntax is `# type: ignore[rule-code]` and `# noqa: RULE`, each with
     a comment stating why. Limits are in *General → Toolchain conformance*.
 - Use generics where they remove a cast, and `@overload` where the return type
@@ -56,8 +57,8 @@ aesthetic preference alone does not justify another model or API redesign.
 - Where a dependency needs an interface, write a `Protocol`, not an abstract
     base class. *Composition and dependency injection* decides whether it needs
     one.
-- `Sequence` / `Mapping` / `Iterable` in parameter positions; concrete types in
-    return positions.
+- `Sequence` / `Mapping` / `Iterable` in parameter positions, and concrete types
+    in return positions.
 
 ## API design
 
@@ -87,8 +88,8 @@ aesthetic preference alone does not justify another model or API redesign.
     CPU-bound work, and code whose I/O is one call deep. Async complexity must be
     paid for in throughput.
 - A module is async or sync, not both. Do not offer both forms of the same
-    operation. Cross the boundary at one explicit place - `asyncio.run`,
-    `asyncio.to_thread`.
+    operation. Cross the boundary at one explicit place, such as
+    `asyncio.run` or `asyncio.to_thread`.
 - Never call blocking code from an async function without `to_thread`.
 
 ## Complexity
@@ -112,13 +113,13 @@ aesthetic preference alone does not justify another model or API redesign.
     network round-trips, `__slots__` or a frozen model for objects created in bulk,
     `functools.cache` where the input space is bounded.
 - Measure before and after, and state the numbers. An unmeasured optimization is
-    speculative behavior; see *General → Never*.
+    speculative behavior (see *General → Never*).
 
 ### Assumed scale
 
 - Design for the count the domain actually produces, and justify the count before
-    designing for it. A function over S3 objects will see thousands; a function
-    over Terraform environments will not.
+    designing for it. A function over S3 objects will see thousands, but a
+    function over Terraform environments will not.
 - Judge scale by the total wait, which is the number of items times the cost of
     each, not by the number of items alone. Independent subprocess or network
     calls across tens of items, where a person waits for the result, may run in
@@ -131,7 +132,7 @@ aesthetic preference alone does not justify another model or API redesign.
 
 - Pass collaborators explicitly where substitution, state or ownership requires
     it. Use constructor parameters for collaborators an object retains.
-    `Protocol`s describe meaningful substitution or I/O boundaries; ordinary
+    `Protocol`s describe meaningful substitution or I/O boundaries. Ordinary
     public function calls need no injected object or protocol. A protocol needs
     a boundary the project contract names, or two production implementations.
     An implementation the owner has committed to counts as one of them. A test
@@ -139,11 +140,11 @@ aesthetic preference alone does not justify another model or API redesign.
 - No service locator, no global registry, no import-time singleton, no
     framework-magic injection unless an applicable framework contract specifies it.
 - Free functions for stateless operations, including those taking explicit
-    collaborators. Classes own state or collaborator lifetimes; never use them
+    collaborators. Classes own state or collaborator lifetimes. Never use them
     as namespaces for functions.
 - Inheritance is for a genuine substitutable subtype. Anything else is a
-    collaborator - inject it. Never inherit to share helper methods; never inherit
-    from a concrete class you also instantiate.
+    collaborator to inject. Never inherit to share helper methods, and never
+    inherit from a concrete class you also instantiate.
 
 ## Data and settings modeling
 
@@ -167,16 +168,17 @@ aesthetic preference alone does not justify another model or API redesign.
 
 ## Logging
 
-- Operational logs are JSON. Structured fields in `extra`; the message is a short, stable
-    event name.
+- Operational logs are JSON. Structured fields go in `extra`, and the message is
+    a short, stable event name.
 
     ```python
     logger.info("frame_dropped", extra={"node": node_id, "seq": seq, "reason": reason})
     ```
 
 - Never an f-string, `%`, or `.format()` in a log call. Enforced by `ruff` (`G`).
-- One module-level `logger = logging.getLogger(__name__)`; an applicable domain
-    contract may specify a different logger. No `print` outside a CLI's own output.
+- One module-level `logger = logging.getLogger(__name__)`, unless an applicable
+    domain contract specifies a different logger. No `print` outside a CLI's
+    own output.
 - A CLI's messages to its user are output, not logs. They go through the CLI's
     own output code and are not JSON.
 - Log at the boundary where the outcome is known. Do not log and re-raise at
@@ -187,10 +189,11 @@ aesthetic preference alone does not justify another model or API redesign.
 ### Environment
 
 - Work inside the project virtualenv. **Never install globally.**
-- Use the existing project virtualenv through `uv run` or its explicit executable;
-    shell activation is not required. Prefer `uv run --no-sync` when verifying an
-    already provisioned environment. Do not create a second environment or fall
-    back to global packages. Report an actually missing environment/dependency.
+- Use the existing project virtualenv through `uv run` or its explicit
+    executable. Shell activation is not required. Prefer `uv run --no-sync`
+    when verifying an already provisioned environment. Do not create a second
+    environment or fall back to global packages. Report an actually missing
+    environment/dependency.
 - A virtualenv belongs to the machine that created it. Where the working tree
     is shared with another machine, such as a host mounted into a sandbox, do
     not run, sync or install into an environment that machine created. Create
@@ -202,7 +205,7 @@ aesthetic preference alone does not justify another model or API redesign.
     Adding a dependency in that state is a blocking assumption.
 - `uv` manages the environment and the lockfile: `uv sync` to install, `uv run` to
     execute. `pyproject.toml` is the single source of project and tool
-    configuration; no `setup.py`, no `requirements.txt`.
+    configuration, with no `setup.py` and no `requirements.txt`.
 - Project settings and exact installed versions remain authoritative.
 
 ### Adding libraries
@@ -213,11 +216,11 @@ none and stubs exist.
 
 Preference order, applied as a guideline rather than a checklist:
 
-1. **Modern and narrowly scoped** - debt-free, high-performance, fully typed, a
+1. **Modern and narrowly scoped:** debt-free, high-performance, fully typed, a
     clean expressive API, low mental load.
-2. **Classic and established** - industry standard, boring engineering, some tech
+2. **Classic and established:** industry standard, boring engineering, some tech
     debt acceptable.
-3. **Little-known but well-engineered** - clean, current, well-maintained.
+3. **Little-known but well-engineered:** clean, current, well-maintained.
 
 - Below roughly 100 stars, ask before adding.
 - Do not add a library that is unmaintained, untyped with no stubs available, or
@@ -272,10 +275,10 @@ Preference order, applied as a guideline rather than a checklist:
     (flake8-bandit), `G` (logging format), `C901`, `ANN`, `RUF`. Fix findings
     rather than narrowing the selection. The selection excludes the rules that
     require a docstring on every module, class or function (`D100` to `D107`).
-- `pytest` with `pytest-cov`. Test behavior through the public surface; do not
-    test private modules directly.
+- `pytest` with `pytest-cov`. Test behavior through the public surface, not
+    through private modules.
 - `bandit` in CI alongside ruff's `S` rules.
 - Add or update tests where existing coverage does not establish the changed
     behavior. A behavior bug fix gets a regression test that fails before the
-    fix. Prose-only changes use review and relevant existing tests; do not write
+    fix. Prose-only changes use review and relevant existing tests. Do not write
     tests of agent-rule wording.
